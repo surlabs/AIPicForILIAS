@@ -1,0 +1,65 @@
+obj_xaig#:#AImage Generator
+objs_xaig#:#AImage Generators
+obj_xaig_duplicate#:#Kopieren
+objs_xaig_duplicate#:#Kopiere AImage Generators
+obj_xaig_select#:#Wähle AImage Generator
+xaig_add#:#AImage Generator hinzufügen
+xaig_new#:#Neues AImage Generator
+xaig_read#:#Lesezugriff auf AImage Generator
+xaig_write#:#AImage Generator bearbeiten
+xaig_delete#:#AImage Generator löschen
+xaig_visible#:#AImage Generator ist sichtbar
+xaig_edit_permission#:#Zugriffsrecht bearbeiten
+crs_create_xaig#:#Erstelle AImage Generator
+grp_create_xaig#:#Erstelle AImage Generator
+fold_create_xaig#:#Erstelle AImage Generator
+root_create_xaig#:#Erstelle AImage Generator
+cat_create_xaig#:#Erstelle AImage Generator
+title#:#Titel
+description#:#Beschreibung
+online#:#Online
+save#:#Speichern
+update#:#Update
+properties#:#Eigenschaften
+content#:#Inhalt
+copy#:#Kopieren
+edit#:#Bearbeiten
+export#:#Export
+set_not_attempted#:#Setze Lernfortschritt auf "Nicht Versucht"
+set_in_progress#:#Setze Lernfortschritt auf "In Bearbeitung"
+set_passed#:#Setze Lernfortschritt auf "Bestanden"
+set_failed#:#Setze Lernfortschritt auf "Nicht Bestanden"
+set_completed#:#Setze Lernfortschritt auf "Durchgeführt"
+lp_status_0#:#Nicht Versucht
+lp_status_1#:#In Bearbeitung
+lp_status_2#:#Durchgeführt
+lp_status_3#:#Nicht Bestanden
+lp_status_#:#Kein Status gesetzt.
+lp_status_info#:#Achtung, wenn Sie den Lernfortschritt ändern so wird der Lernfortschritt für diesen Benutzer bearbeitet UND alle anderen Benutzer auf "Nicht Teilgenommen" gesetzt! Mit der Lucenesuche wird dieses Objekt gefunden, wenn man nach dem Titel, der Beschreibung oder dem Begriff "Repoplugin" sucht.
+offline:#:Offline
+important#:#Wichtig
+online_status#:#Online Status
+lp_status#:#Lernfortschritt
+update_successful#:Die Änderungen wurden gespeichert.
+news_title#:#Titel (en)
+news_content#:#Inhalt (en)
+xaig_copy#:#AImage Generator kopieren
+offline#:#Offline
+status#:#Status
+
+prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
+prompt_selector#:#Geben Sie eine Aufforderung ein
+prompt#:#Prompt
+xaig_prompt#:#Prompt
+
+cmd_insert#:#AImageGenerator einfügen
+component_title#:#Titel
+component_aigenerator_file#:#AImageGenerator-Datei
+component_width#:#Breite
+component_height#:#Höhe
+component_enableShiftDragZoom#:#Verschieben und Zoomen aktivieren
+component_showResetIcon#:#Reset-Icon anzeigen
+component_aligment#:#Ausrichtung
+component_left#:#Links
+component_center#:#Zentriert
+component_right#:#Rechts

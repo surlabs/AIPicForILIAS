@@ -1,0 +1,66 @@
+obj_xaig#:#AImage Generator
+objs_xaig#:#AImage Generators
+obj_xaig_duplicate#:#Copy
+objs_xaig_duplicate#:#Copy AImage Generators
+obj_xaig_select#:#Select AImage Generator
+xaig_add#:#Add AImage Generator
+xaig_new#:#Add New AImage Generator
+xaig_read#:#Read access to AImage Generator
+xaig_write#:#Edit AImage Generator
+xaig_delete#:#Delete AImage Generator
+xaig_visible#:#AImage Generator is visible
+xaig_edit_permission#:#Change permission settings
+crs_create_xaig#:#Create AImage Generator
+grp_create_xaig#:#Create AImage Generator
+fold_create_xaig#:#Create AImage Generator
+root_create_xaig#:#Create AImage Generator
+cat_create_xaig#:#Create AImage Generator
+title#:#Title
+description#:#Description
+online#:#Online
+save#:#Save
+update#:#Update
+properties#:#Properties
+content#:#Content
+copy#:#Copy
+edit#:#Edit
+export#:#Export
+set_not_attempted#:#Set LP Status to not attempted
+set_in_progress#:#Set LP Status to in progress
+set_passed#:#Set LP Status to not completed
+set_failed#:#Set LP Status to not failed
+set_completed#:#Set LP Status to completed
+lp_status_0#:#Not Attempted
+lp_status_1#:#In Progress
+lp_status_2#:#Completed
+lp_status_3#:#Failed
+lp_status_#:#No state yet.
+lp_status_info#:#Attention: Setting the LP Status will set the LP status of the currently logged in user to the chosen status. THE STATUS OF EVERY OTHER USER WILL BE SET TO NOT ATTEMPTED! You will find this repository object by searching for its title, its description or the expression "Repoplugin".
+offline:#:Offline
+important#:#Important
+online_status#:#Online Status
+lp_status#:#Learning Progress
+update_successful#:#Update Successful
+news_title#:#Title (en)
+news_content#:#Content (en)
+xaig_copy#:#Copy AImage Generator
+offline#:#Offline
+status#:#Status
+
+prompt_image_input#:#Write a prompt for the image
+prompt_selector#:#Enter a prompt
+prompt#:#Prompt
+xaig_prompt#:#Prompt
+
+
+cmd_insert#:#Insert AImage Generator
+component_title#:#Title
+component_aigenerator_file#:#AIgenerator File
+component_width#:#Width
+component_height#:#Height
+component_enableShiftDragZoom#:#Enable Shift Drag Zoom
+component_showResetIcon#:#Show Reset Icon
+component_aligment#:#Alignment
+component_left#:#Left
+component_center#:#Center
+component_right#:#Right
