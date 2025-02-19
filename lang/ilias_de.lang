@@ -51,6 +51,20 @@ prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
 prompt_selector#:#Geben Sie eine Aufforderung ein
 prompt#:#Prompt
 xaig_prompt#:#Prompt
+image_generated#:#Bild generiert
+generate_image#:#Bild generieren
+
+select_aligment#:#Ausrichtung auswählen
+select_aligment_left#:#Links
+select_aligment_center#:#Zentriert
+select_aligment_right#:#Rechts
+select_aligment_image_position#:#Bildposition
+button_download#:#Herunterladen
+
+height#:#Höhe
+width#:#Breite
+height_px#:#Höhe (px)
+width_px#:#Breite (px)
 
 cmd_insert#:#AImageGenerator einfügen
 component_title#:#Titel

@@ -1,0 +1,32 @@
+.il-standard-form-cmd button[disabled],
+.il-standard-form-cmd input[type='submit'][disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.center {
+    justify-content: center;
+}
+
+.left {
+    justify-content: start;
+}
+
+.right {
+    justify-content: end;
+}
+
+body {
+    margin: 0;
+}
+
+.aimage_generator_container {
+    width:100%;
+    margin-top:    3px;
+    margin-bottom: 3px;
+}
+
+.aimage_generator_object {
+    display: flex;
+}

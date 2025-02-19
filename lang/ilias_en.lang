@@ -50,7 +50,21 @@ status#:#Status
 prompt_image_input#:#Write a prompt for the image
 prompt_selector#:#Enter a prompt
 prompt#:#Prompt
+image_generated#:#Image Generated
 xaig_prompt#:#Prompt
+generate_image#:#Generate Image
+
+select_aligment#:#Select alignment
+select_aligment_left#:#Left
+select_aligment_center#:#Center
+select_aligment_right#:#Right
+select_aligment_image_position#:#Image position
+button_download#:#Download
+
+height#:#Height
+width#:#Width
+height_px#:#Height (px)
+width_px#:#Width (px)
 
 
 cmd_insert#:#Insert AImage Generator

@@ -5,6 +5,7 @@
  * @ilCtrl_Calls      ilAImageGeneratorPluginGUI: ilPermissionGUI, ilInfoScreenGUI, ilObjectCopyGUI, ilCommonActionDispatcherGUI, ilExportGUI, ilAImageGeneratorEditorGUI, ilObjRootFolderGUI
  */
 
+use ILIAS\ResourceStorage\Flavour\Definition\PagesToExtract;
 use ILIAS\ResourceStorage\Identification\ResourceIdentification;
 use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
@@ -18,7 +19,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
     private ilCtrlInterface $ctrl;
     private ilGlobalTemplateInterface $tpl;
     private ilTabsGUI $tabs;
-    private UploadServiceGUI $uploader;
+    private UploadServiceAImageGeneratorGUI $uploader;
 
     private ilAImageGeneratorEditorGUI $editorGUI;
 
@@ -35,47 +36,43 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
         $this->tabs = $DIC->tabs();
-        $this->uploader = new UploadServiceGUI();
 
     }
 
-
-//
-// DISPLAY TABS
-//
-
-    /**
-     * Set tabs
-     */
-    protected function setTabs() : void
+    public function update(): void
     {
-        global $ilCtrl, $ilAccess;
+        global $tpl, $DIC, $ilCtrl;
+        $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
+        $form = $this->editorGUI->getPromptForm();
+        $form = $form->withRequest($DIC->http()->request());
+        $result = $form->getData();
+        //dump($result);exit();
 
-        // tab for the "show content" command
-        if ($ilAccess->checkAccess("read", "", $this->object->getRefId())) {
-            $this->tabs->addTab("content", $this->txt("content"), $ilCtrl->getLinkTarget($this, "showContent"));
+        if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
+            //dump($result[0]);exit();
+            $result[0]['imageId'] = $result[0]['file'][0];
+            $result[0]['file'] = null;
+            $this->updateElement($result[0]);
         }
-
-        // standard info screen tab
-        $this->addInfoTab();
-
-        // a "properties" tab
-        if ($ilAccess->checkAccess("write", "", $this->object->getRefId())) {
-            $this->tabs->addTab(
-                "properties",
-                $this->txt("properties"),
-                $ilCtrl->getLinkTarget($this, "editProperties")
-            );
-        }
-
-        // standard export tab
-        $this->addExportTab();
-
-        // standard permission tab
-        $this->addPermissionTab();
-        $this->activateTab();
+        $this->returnToParent();
+        //dump($form->getInputs()[0]->getValue());exit();
     }
 
+    protected function setSubTabs(string $active) {
+        $this->tabs->addSubTab(
+            "subtab_generic_settings",
+            $this->plugin->txt("subtab_generic_settings"),
+            $this->ctrl->getLinkTarget($this, "edit")
+        );
+
+        $this->tabs->addSubTab(
+            "subtab_advanced_settings",
+            $this->plugin->txt("subtab_advanced_settings"),
+            $this->ctrl->getLinkTarget($this, "edit")
+        );
+
+        $this->tabs->activateSubTab($active);
+    }
 
 
     // PageComponent methods
@@ -90,7 +87,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
             default:
                 // perform valid commands
                 $cmd = $ilCtrl->getCmd();
-                if (in_array($cmd, array("create", "save", "edit", "edit2", "update", "cancel", "sendPrompt", "insert")))
+                if (in_array($cmd, array("create", "save", "edit", "edit2", "update", "cancel", "sendPrompt", "insert", "saveImage", "update")))
                 {
                     $this->$cmd();
                 }
@@ -108,85 +105,123 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         return $aimageGeneratorProvider;
     }
 
+    /**
+     * @throws ilCtrlException
+     */
     public function insert(): void
     {
-        global $DIC;
+        global $tpl, $DIC, $ilCtrl;
+
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
-        $ui = $DIC->ui()->factory();
-        $rederer = $DIC->ui()->renderer();
         $form = $this->editorGUI->getPromptForm();
+        $request = $DIC->http()->request();
+        $query = $DIC->http()->wrapper()->query();
         $refinery = $DIC->refinery();
+        $action = $query->retrieve("cmd", $refinery->to()->string());
+        $actionDesired = $query->has("methodDesired") ? $query->retrieve("methodDesired", $refinery->to()->string()) : null;
 
-        $res = $this->editorGUI->checkImagesAndGenerateForm($form);
+        $ilCtrl->setParameterByClass('ilAImageGeneratorPluginGUI', 'methodDesired', 'sendPrompt');
 
+        if ($request->getMethod() == "POST" && $action != "post" && $actionDesired == "saveImage") {
+            $this->editorGUI->saveImage();
+            $request = $DIC->http()->request();
+            $form = $this->editorGUI->getPromptForm();
+            $form = $form->withRequest($request);
+            $result = $form->getData();
+            //dump($result);exit();
 
-/*
-
-
-        $jsonData = json_encode($data);
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true); // Indicamos que es una solicitud POST
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData); // Convertimos el array en una cadena URL-encoded
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-
-        $response = json_decode($response, true);
-
-        if (curl_errno($ch)) {
-            dumpt( "Error en cURL: " . curl_error($ch)); exit();
+            if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
+                //dump($result[0]);exit();
+                $result[0]['imageId'] = $result[0]['file'][0];
+                $result[0]['file'] = null;
+                $this->createElement($result[0]);
+            }
+            $this->returnToParent();
         } else {
-            // Opcional: obtener el código de respuesta HTTP
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $url = $response["data"][0]["url"];
+            // Check if we can download the image
+            $this->editorGUI->manageDownloadImage();
 
-            $imagen = file_get_contents($url);
-            $nombreArchivo = 'imagen.jpg';
+            // Generate the image div
+            $image = $this->editorGUI->generateImage();
 
-            // Configura las cabeceras para forzar la descarga
-            header('Content-Description: File Transfer');
-            header('Content-Type: application/octet-stream'); // También se puede usar el Content-Type real, p.ej., image/jpeg
-            header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate');
-            header('Pragma: public');
-            header('Content-Length: ' . strlen($imagen));
+            $res = $this->editorGUI->renderForm($form) .
+                $image
+            ;
 
-            // Envía el contenido de la imagen al navegador
-            echo $imagen;
-            //dump($response["data"][0]["url"]);exit();
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/downloadImage.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/callSaveEndpoint.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/resendForm.js");
+            $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/css/aimageGenerator_sheet.css");
+
+            $this->tpl->setContent($res);
         }
-*/
-
-        $this->tpl->setContent($res);
     }
 
     public function edit(): void
     {
-        dump('edit');exit();
+        //$this->setSubTabs("subtab_generic_settings");
+        global $tpl, $DIC, $ilCtrl;
+
+        $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
+        $form = $this->editorGUI->getPromptFormWithProperties($this->getProperties());
+        $irss = $DIC->resourceStorage();
+        $file_name = $irss->consume()->src(new ResourceIdentification($this->getProperties()["imageId"]))->getSrc();
+        $image = $this->editorGUI->generateImage($file_name ?? null);
+
+        $res = $this->renderer->render($form) .
+            $image
+        ;
+
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/downloadImage.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/callSaveEndpoint.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/resendForm.js");
+        $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/css/aimageGenerator_sheet.css");
+
+        $this->tpl->setContent($res);
+
+        //$this->tpl->setContent($this->renderer->render($form));
     }
 
     public function create(): void
     {
-        dump('edit');exit();
-    }
-
-    public function sendPrompt(): void
-    {
-        $this->editorGUI->sendPrompt();
+        $this->ctrl->redirect($this, 'insert');
     }
 
     public function getElementHTML(string $a_mode, array $a_properties, string $plugin_version): string
     {
         global $DIC;
         $lng = $DIC->language();
+        $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
 
-        $ui = $DIC->ui()->factory();
-        $rederer = $DIC->ui()->renderer();
-        $form = $rederer->render($this->editorGUI->getPromptForm());
-       // dump($form);exit();
+        $old_path = ILIAS_WEB_DIR . '/' . CLIENT_ID . "/AImageGenerator/" . $a_properties["imageId"];
 
-        return $form;
+        if (!file_exists($old_path)) {
+            $irss = $DIC->resourceStorage();
+            $a_properties["old"] = false;
+            $file_name = $irss->consume()->src(new ResourceIdentification($a_properties["imageId"]))->getSrc();
+
+        } else {
+            $a_properties["old"] = true;
+            $file_name = $old_path;
+        }
+        $a_properties["fileName"] = $file_name;
+
+        $tpl = new ilTemplate("aimage_generator_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator");
+
+        $tpl->setVariable("ID", date_create()->format('Y-m-d_H-i-s'));
+        $tpl->setVariable("SCALE_WRAPPER_WIDTH", $a_properties["widthInput"]);
+
+        $raw_alignment = $a_properties["aligments"] ?? "left";
+        $alignment = empty($raw_alignment) ? "left" : $raw_alignment;
+        $tpl->setVariable("ALIGNMENT", $alignment);
+
+        $tpl->setVariable("TEMPLATES_DIR", "Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates");
+        $tpl->setVariable("PLUGIN_DIR", "Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator");
+        $tpl->setVariable("IMAGE_URL", $a_properties["fileName"]);
+
+        $tpl->setVariable("PROPERTIES", json_encode($a_properties));
+
+
+        return $tpl->get();
     }
 }
