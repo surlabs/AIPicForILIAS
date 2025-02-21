@@ -19,13 +19,15 @@ use ILIAS\FileUpload\Handler\BasicFileInfoResult;
  * Class UploadServiceAImageGeneratorGUI
  * @authors Jesús Copado, Daniel Cazalla, Saúl Díaz, Juan Aguilar <info@surlabs.es>
  *
- * @ilCtrl_isCalledBy UploadServiceAImageGeneratorGUI : ilAImageGeneratorPluginGUI
+ * @ilCtrl_isCalledBy UploadServiceAImageGeneratorGUI : ilAImageGeneratorPluginGUI, ilObjPluginDispatchGUI, ilPCPluggedGUI
  * @ilCtrl_isCalledBy UploadServiceAImageGeneratorGUI : ilUIPluginRouterGUI, ilAImageGeneratorPluginGUI
  */
 class UploadServiceAImageGeneratorGUI extends AbstractCtrlAwareUploadHandler
 {
     private ResourceStorage $storage;
     private StorageStakeHolderAIGenerator $stakeholder;
+
+    private ilLogger $logger;
 
     public function __construct()
     {
@@ -35,6 +37,7 @@ class UploadServiceAImageGeneratorGUI extends AbstractCtrlAwareUploadHandler
 
         $this->storage = $DIC->resourceStorage();
         $this->stakeholder = new StorageStakeHolderAIGenerator();
+        $this->logger = $DIC->logger()->root();
     }
 
     public function getFileIdentifierParameterName(): string
@@ -108,16 +111,29 @@ class UploadServiceAImageGeneratorGUI extends AbstractCtrlAwareUploadHandler
         return new BasicHandlerResult($this->getFileIdentifierParameterName(), $status, $identifier, $message);
     }
 
-    protected function getRemoveResult(string $identifier): HandlerResult
+    public function removeFromOutside(string $identifier): HandlerResult
     {
-        $id = $this->storage->manage()->find($identifier);
-        if ($id !== null) {
+        return $this->getRemoveResult($identifier);
+    }
+    protected function getRemoveResult(string $identifier) : HandlerResult
+    {
+        if (null !== ($id = $this->storage->manage()->find($identifier))) {
             $this->storage->manage()->remove($id, $this->stakeholder);
-
-            return new BasicHandlerResult($this->getFileIdentifierParameterName(), HandlerResult::STATUS_OK, $identifier, 'file deleted');
+            $status = HandlerResult::STATUS_OK;
+            $message = "file removal OK";
+            $this->logger->info($message);
         } else {
-            return new BasicHandlerResult($this->getFileIdentifierParameterName(), HandlerResult::STATUS_FAILED, $identifier, 'file not found');
+            $status = HandlerResult::STATUS_OK;
+            $message = "file with identifier '$identifier' doesn't exist, nothing to do.";
+            $this->logger->info($message);
         }
+
+        return new BasicHandlerResult(
+            $this->getFileIdentifierParameterName(),
+            $status,
+            $identifier,
+            $message
+        );
     }
 
     /** @noinspection DuplicatedCode */

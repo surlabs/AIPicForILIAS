@@ -28,7 +28,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         parent::__construct();
 
         global $DIC;
-
+        $this->uploader = new UploadServiceAImageGeneratorGUI();
         $this->renderer = $DIC->ui()->renderer();
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
@@ -45,8 +45,11 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         if($form->getError() === null) {
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
                 $result[0]['imageId'] = $result[0]['file'][0];
+                $properties["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
+                $properties["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
             } else {
+
                 $result[0]['imageId'] = $this->getProperties()["imageId"];
                 unset($result[0]['file']);
             }
@@ -92,11 +95,6 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
     private function generateImageCreator(): AImageGeneratorRequestInterface {
         $config = new AImageGeneratorConfig();
         $config->loadFromDB();
-        $url = $config->getApiUrl();
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: Bearer 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'
-        ];
         $aimageGeneratorProvider = AImageGeneratorRequestImpl::from($config);
 
         return $aimageGeneratorProvider;
@@ -109,7 +107,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
     public function insert(): void
     {
         global $tpl, $DIC, $ilCtrl;
-
+        $DIC->logger()->root()->info("FORM LOADED");
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptForm();
         $request = $DIC->http()->request();
@@ -129,6 +127,9 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
                 $result[0]['imageId'] = $result[0]['file'][0];
+
+                $properties["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
+                $properties["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
                 $this->createElement($result[0]);
             }

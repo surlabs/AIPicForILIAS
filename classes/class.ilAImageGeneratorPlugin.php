@@ -24,6 +24,8 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     private static $instance;
 
+    private UploadServiceAImageGeneratorGUI $uploader;
+
     public static function getInstance()
     {
         if (!isset(self::$instance)) {
@@ -78,6 +80,14 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
     public function isValidObjectType($a_type): bool
     {
         return true;
+    }
+
+    public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
+    {
+        $this->uploader = new UploadServiceAImageGeneratorGUI();
+        if($a_properties["imageId"] != null) {
+            $this->uploader->removeFromOutside($a_properties["imageId"]);
+        }
     }
 
 }
