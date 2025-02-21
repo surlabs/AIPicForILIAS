@@ -4,7 +4,6 @@ use ILIAS\COPage\Editor\Components\PageComponentEditor;
 use ILIAS\COPage\Editor\Server\UIWrapper;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use JetBrains\PhpStorm\NoReturn;
-use objects\AImageGenerator;
 
 class ilAImageGeneratorEditorGUI implements PageComponentEditor
 {
@@ -50,13 +49,6 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         $form = $form->withRequest($request);
         $result = $form->getData();
 
-        if(isset($result) && count($result) > 0 && count($result[0]["file"]) > 0) {
-            $generatedAImage = new AImageGenerator();
-            $generatedAImage->setPrompt($result[0]["prompt"]);
-            $generatedAImage->setImageIdentifier($result[0]["file"][0]);
-            $generatedAImage->setObjId($this->plugin->getPageId());
-            $generatedAImage->save();
-        }
 
     }
 
@@ -167,7 +159,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         return $formHtml;
     }
 
-    public function manageDownloadImage()
+    public function manageDownloadImage(): void
     {
         global $DIC;
 
@@ -181,9 +173,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         }
         if($request->getMethod() == "GET" && $actionFinal == "downloadImage" && $query->has("urlDownload")) {
             $destiny = $query->retrieve("urlDownload", $refinery->to()->string());
-            //var_dump($destiny);
             $destiny = urldecode($destiny);
-            //var_dump($destiny);
             $imagen = file_get_contents($destiny);
             $query_string = parse_url($destiny, PHP_URL_QUERY);
             parse_str($query_string, $params);
@@ -193,9 +183,6 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
 
             $now = date_create()->format('Y-m-d_H-i-s');
             $fileName =  "AImageGenerator$$now.$etension";
-
-
-
 
             header('Content-Description: File Transfer');
             header("Content-Type: $content_type");
@@ -209,6 +196,9 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         }
     }
 
+    /**
+     * @throws ilCtrlException
+     */
     public function generateImage(?string $url = null): string
     {
         $url = $url ?? $this->placeHolderUrl;
@@ -241,7 +231,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
                                     top: 50%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);">' .
-                        '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/loading.gif" />'
+                        '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/loading.gif" alt="loading"/>'
                         . '</div>' .
                          $renderer->render($image) .
                     '</div>' .
@@ -264,7 +254,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
                 exit();
             }
         }
-        echo json_encode(["Error" => "No se han encontrado imágenes"]);
+        echo json_encode(["Error" => $this->plugin->txt("no_images_found")]);
         exit();
     }
 

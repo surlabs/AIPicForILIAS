@@ -1,10 +1,10 @@
 <?php
 
-namespace platform;
+namespace db;
 
 use Exception;
 use ilDBInterface;
-use platform\interfaces\BaseDbInterface;
+use interfaces\BaseDbInterface;
 
 
 class BasicDb implements BaseDbInterface {

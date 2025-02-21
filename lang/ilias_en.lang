@@ -66,6 +66,33 @@ width#:#Width
 height_px#:#Height (px)
 width_px#:#Width (px)
 
+url_restriction#:#Must be an URL
+
+header_request#:#Request's header
+body_request#:#Request's body
+response#:#Response
+
+api_url#:#API URL
+api_url_description#:#API URL for generate images.
+authentication_key#:#Authentication key label
+authentication_key_description#:#Authentication label introduced on request to include the token.
+authentication_value#:#Authentication value
+authentication_value_description#:#Authentication value, for example: Bearer XXXX...
+header_options#:#Additional header options
+header_options_description#:#This field is optional. You can add additional headers to the request, such as Content-Type. Enter all options separated by commas, with key-value pairs formatted as key:value.
+request_body_prompt#:#Request body prompt key
+request_body_prompt_context#:#Prompt context
+request_body_prompt_context_description#:#Prompt context description
+request_body_prompt_description#:#Key for specifying the prompt in the request body.
+request_body_options#:#Additional body options
+request_body_options_description#:#This field is optional. You can add additional body params to the request, such as model. Enter all options separated by commas, with key-value pairs formatted as key:value.
+response_body_key#:#Response body key
+response_body_key_description#:#Key for specifying the image data in the response body. For example, if data appears like data => image.jpg, the key would be data.
+response_body_subkey#:#Response body subkey
+response_body_subkey_description#:#Subkey for specifying the image data in the response body. For example, if data appears like data => url => image.jpg, the subkey would be url.
+
+config_saved#:#Configuration saved successfully
+no_images_found#:#No images found
 
 cmd_insert#:#Insert AImage Generator
 component_title#:#Title

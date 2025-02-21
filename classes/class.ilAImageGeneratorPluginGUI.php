@@ -10,15 +10,14 @@ use ILIAS\ResourceStorage\Identification\ResourceIdentification;
 use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
+use platform\AImageGeneratorConfig;
 
 class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 {
     public const LP_SESSION_ID = 'xaig_lp_session_state';
-    private Factory $factory;
     private Renderer $renderer;
     private ilCtrlInterface $ctrl;
     private ilGlobalTemplateInterface $tpl;
-    private ilTabsGUI $tabs;
     private UploadServiceAImageGeneratorGUI $uploader;
 
     private ilAImageGeneratorEditorGUI $editorGUI;
@@ -46,37 +45,21 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         $form = $this->editorGUI->getPromptForm();
         $form = $form->withRequest($DIC->http()->request());
         $result = $form->getData();
-        //dump($result);exit();
 
         if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
-            //dump($result[0]);exit();
             $result[0]['imageId'] = $result[0]['file'][0];
             $result[0]['file'] = null;
             $this->updateElement($result[0]);
         }
         $this->returnToParent();
-        //dump($form->getInputs()[0]->getValue());exit();
-    }
-
-    protected function setSubTabs(string $active) {
-        $this->tabs->addSubTab(
-            "subtab_generic_settings",
-            $this->plugin->txt("subtab_generic_settings"),
-            $this->ctrl->getLinkTarget($this, "edit")
-        );
-
-        $this->tabs->addSubTab(
-            "subtab_advanced_settings",
-            $this->plugin->txt("subtab_advanced_settings"),
-            $this->ctrl->getLinkTarget($this, "edit")
-        );
-
-        $this->tabs->activateSubTab($active);
     }
 
 
     // PageComponent methods
 
+    /**
+     * @throws ilCtrlException
+     */
     public function executeCommand(): void
     {
         global $ilCtrl;
@@ -95,18 +78,25 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         }
     }
 
+    /**
+     * @throws Exception
+     */
     private function generateImageCreator(): AImageGeneratorRequestInterface {
-        $url = 'https://api.openai.com/v1/images/generations';
+        $config = new AImageGeneratorConfig();
+        $config->loadFromDB();
+        $url = $config->getApiUrl();
         $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer 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'
         ];
-        $aimageGeneratorProvider = new AImageGeneratorRequestImpl($url, $headers, null);
+        $aimageGeneratorProvider = AImageGeneratorRequestImpl::from($config);
+
         return $aimageGeneratorProvider;
     }
 
     /**
      * @throws ilCtrlException
+     * @throws Exception
      */
     public function insert(): void
     {
@@ -128,10 +118,8 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
             $form = $this->editorGUI->getPromptForm();
             $form = $form->withRequest($request);
             $result = $form->getData();
-            //dump($result);exit();
 
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
-                //dump($result[0]);exit();
                 $result[0]['imageId'] = $result[0]['file'][0];
                 $result[0]['file'] = null;
                 $this->createElement($result[0]);
@@ -145,7 +133,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
             $image = $this->editorGUI->generateImage();
 
             $res = $this->editorGUI->renderForm($form) .
-                $image
+                $image;
             ;
 
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/downloadImage.js");
@@ -159,7 +147,6 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 
     public function edit(): void
     {
-        //$this->setSubTabs("subtab_generic_settings");
         global $tpl, $DIC, $ilCtrl;
 
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
@@ -182,26 +169,29 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         //$this->tpl->setContent($this->renderer->render($form));
     }
 
+    /**
+     * @throws ilCtrlException
+     */
     public function create(): void
     {
         $this->ctrl->redirect($this, 'insert');
     }
 
+    /**
+     * @throws ilTemplateException
+     */
     public function getElementHTML(string $a_mode, array $a_properties, string $plugin_version): string
     {
         global $DIC;
-        $lng = $DIC->language();
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
 
         $old_path = ILIAS_WEB_DIR . '/' . CLIENT_ID . "/AImageGenerator/" . $a_properties["imageId"];
 
         if (!file_exists($old_path)) {
             $irss = $DIC->resourceStorage();
-            $a_properties["old"] = false;
             $file_name = $irss->consume()->src(new ResourceIdentification($a_properties["imageId"]))->getSrc();
 
         } else {
-            $a_properties["old"] = true;
             $file_name = $old_path;
         }
         $a_properties["fileName"] = $file_name;

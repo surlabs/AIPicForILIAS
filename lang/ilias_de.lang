@@ -66,6 +66,33 @@ width#:#Breite
 height_px#:#Höhe (px)
 width_px#:#Breite (px)
 
+url_restriction#:#Muss eine URL sein
+
+header_request#:#Anforderungskopf
+body_request#:#Anforderungskörper
+response#:#Antwort
+
+api_url#:#API URL
+api_url_description#:#API URL zum Generieren von Bildern.
+authentication_key#:#Authentifizierungsschlüsselbeschriftung
+authentication_key_description#:#Authentifizierungsschlüssel für den Zugriff auf die API.
+authentication_value#:#Authentifizierungswert
+authentication_value_description#:#Authentifizierungswert für den Zugriff auf die API. Zum Beispiel: Bearer XXXX...
+header_options#:#Zusätzliche Headeroptionen
+header_options_description#:#Dieses Feld ist optional. Sie können der Anfrage zusätzliche Header hinzufügen, z. B. Content-Type. Geben Sie alle Optionen durch Kommas getrennt ein, wobei die Schlüssel-Wert-Paare als Schlüssel:Wert formatiert sind.
+request_body_prompt#:#Anforderungskörper-Prompt-Schlüssel
+request_body_prompt_description#:#Schlüssel für die Angabe des Bildes im Anforderungskörper. Zum Beispiel, wenn Daten wie Daten => Bild.jpg erscheinen, wäre der Schlüssel Daten.
+request_body_prompt_context#:#Prompt-Kontext
+request_body_prompt_context_description#:#Kontext für die Angabe des Bildes im Anforderungskörper.
+request_body_options#:#Dieses Feld ist optional. Sie können der Anfrage zusätzliche Körperparameter hinzufügen, z. B. das Modell. Geben Sie alle Optionen durch Kommas getrennt ein, wobei die Schlüssel-Wert-Paare als Schlüssel:Wert formatiert sind.
+response_body_key#:#Antwortkörperschlüssel
+response_body_key_description#:#Schlüssel zur Angabe der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => image.jpg aussehen, wäre der Schlüssel data.
+response_body_subkey#:#Antwortkörpersubkey
+response_body_subkey_description#:#Unterschlüssel zum Angeben der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => url => image.jpg aussehen, wäre der Unterschlüssel url.
+
+config_saved#:#Konfiguration erfolgreich gespeichert
+no_images_found#:#Keine Bilder gefunden
+
 cmd_insert#:#AImageGenerator einfügen
 component_title#:#Titel
 component_aigenerator_file#:#AImageGenerator-Datei
