@@ -140,7 +140,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
 
     public function renderForm(Standard $form): string
     {
-        global $DIC, $tpl, $ilCtrl;
+        global $DIC;
 
         $refinery = $DIC->refinery();
         $renderer = $DIC->ui()->renderer();

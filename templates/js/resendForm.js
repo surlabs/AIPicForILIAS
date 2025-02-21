@@ -3,6 +3,10 @@ $("#imageDiv").css("max-width", "800px").css("max", "100%");
 
 $("downloadButton").children().css("width", "10%");
 
+for (let i = 0; i < document.getElementsByClassName("ui-input-file-input-dropzone").length; i++) {
+    document.getElementsByClassName("ui-input-file-input-dropzone")[i].style.display = "none";
+}
+
 const prompt = $('.il-section-input .ui-input-textarea textarea');
 const generateButton = $('#redirectButton button');
 const widthInputs = document.getElementsByName("aimageGeneratorForm/input_5/input_9")

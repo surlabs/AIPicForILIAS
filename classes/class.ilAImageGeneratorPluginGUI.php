@@ -42,13 +42,24 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         $form = $this->editorGUI->getPromptForm();
         $form = $form->withRequest($DIC->http()->request());
         $result = $form->getData();
+        if($form->getError() === null) {
+            if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
+                $result[0]['imageId'] = $result[0]['file'][0];
+                unset($result[0]['file']);
+            } else {
+                $result[0]['imageId'] = $this->getProperties()["imageId"];
+                unset($result[0]['file']);
+            }
 
-        if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
-            $result[0]['imageId'] = $result[0]['file'][0];
-            $result[0]['file'] = null;
             $this->updateElement($result[0]);
+            $this->returnToParent();
+        } else {
+            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/downloadImage.js");
+            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/callSaveEndpoint.js");
+            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/js/resendForm.js");
+            $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/css/aimageGenerator_sheet.css");
+            $this->tpl->setContent($this->renderer->render($form));
         }
-        $this->returnToParent();
     }
 
 
@@ -118,9 +129,10 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
                 $result[0]['imageId'] = $result[0]['file'][0];
-                $result[0]['file'] = null;
+                unset($result[0]['file']);
                 $this->createElement($result[0]);
             }
+
             $this->returnToParent();
         } else {
             // Check if we can download the image
@@ -148,6 +160,7 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptFormWithProperties($this->getProperties());
+        //dump($form->getInputs()->getValues());exit();
         $irss = $DIC->resourceStorage();
         $file_name = $irss->consume()->src(new ResourceIdentification($this->getProperties()["imageId"]))->getSrc();
         $image = $this->editorGUI->generateImage($file_name ?? null);
