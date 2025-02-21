@@ -44,9 +44,12 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         $result = $form->getData();
         if($form->getError() === null) {
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
+                if(array_key_exists("imageId", $this->getProperties())) {
+                    $this->uploader->removeFromOutside($this->getProperties()["imageId"]);
+                }
                 $result[0]['imageId'] = $result[0]['file'][0];
-                $properties["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
-                $properties["fileName"] = $result[0]["file"][0];
+                $result["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
+                $result["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
             } else {
 
@@ -128,8 +131,8 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
             if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
                 $result[0]['imageId'] = $result[0]['file'][0];
 
-                $properties["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
-                $properties["fileName"] = $result[0]["file"][0];
+                $result["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
+                $result["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
                 $this->createElement($result[0]);
             }
