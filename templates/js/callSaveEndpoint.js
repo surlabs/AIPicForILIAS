@@ -6,7 +6,7 @@ function callSaveEndpoint(url) {
     for (let i = 0; i < images.length; i++) {
         if (images[i].alt === 'Generated_image') {
             currentUrl.searchParams.delete("urlDownload");
-            currentUrl.searchParams.set("urlDownload", images[i].src);
+            currentUrl.searchParams.set("urlDownload", encodeURI(images[i].src));
             currentUrl.searchParams.delete("methodDesired");
             currentUrl.searchParams.set("methodDesired", "downloadImage");
             url = currentUrl.toString();

@@ -7,7 +7,6 @@
 
 use ILIAS\ResourceStorage\Flavour\Definition\PagesToExtract;
 use ILIAS\ResourceStorage\Identification\ResourceIdentification;
-use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use platform\AImageGeneratorConfig;
@@ -30,11 +29,9 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 
         global $DIC;
 
-        $this->factory = $DIC->ui()->factory();
         $this->renderer = $DIC->ui()->renderer();
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
-        $this->tabs = $DIC->tabs();
 
     }
 
