@@ -58,6 +58,11 @@ select_aligment#:#Select alignment
 select_aligment_left#:#Left
 select_aligment_center#:#Center
 select_aligment_right#:#Right
+style_realistic#:#Realistic
+style_artistic#:#Artistic
+style_minimal#:#Minimalistic
+select_style#:#Select style
+select_style_image_position#:#Image position
 select_aligment_image_position#:#Image position
 button_download#:#Download
 

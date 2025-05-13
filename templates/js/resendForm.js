@@ -8,6 +8,9 @@ for (let i = 0; i < document.getElementsByClassName("ui-input-file-input-dropzon
 }
 
 const prompt = $('.il-section-input .ui-input-textarea textarea');
+const styleSelect = $('select[name="aimageGeneratorForm/input_6/input_9"]');
+
+
 const generateButton = $('#redirectButton button');
 const widthInputs = document.getElementsByName("aimageGeneratorForm/input_5/input_9")
 const loadingSpinner = document.getElementById('loadingSpinner');
@@ -77,7 +80,7 @@ function updateDownloadUrl(newUrl) {
 
 function resendForm(url, urlBase) {
 
-    const promptValue = prompt.val();
+    const promptValue = setPromptStyle(prompt.val(), styleSelect.val());
 
     let fileInput = document.querySelector("input[type='file']");
 
@@ -130,4 +133,20 @@ function resendForm(url, urlBase) {
             generateButton.attr("disabled", false);
             alert("Error sending data");
         });
+}
+
+function setPromptStyle(userPrompt, style) {
+    const styleMap = {
+        minimal: 'minimal style, flat shapes, soft gradients, clean composition, limited color palette, focus on negative space, simple design',
+        realistic: 'realistic style, photorealistic rendering, high detail, natural lighting, accurate shadows, realistic textures, lifelike atmosphere',
+        artistic: 'artistic style, expressive strokes, creative lighting, stylized forms, surreal interpretation, painterly textures, vibrant mood'
+    };
+
+    const styleDesc = styleMap[style] || '';
+
+    if (!styleDesc.trim()) {
+        return userPrompt.trim();
+    }
+
+    return `${userPrompt.trim()}, ${styleDesc}`;
 }

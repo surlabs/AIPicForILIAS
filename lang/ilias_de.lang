@@ -58,7 +58,12 @@ select_aligment#:#Ausrichtung auswählen
 select_aligment_left#:#Links
 select_aligment_center#:#Zentriert
 select_aligment_right#:#Rechts
-select_aligment_image_position#:#Bildposition
+style_realistic#:#Realistisch
+style_artistic#:#Künstlerisch
+style_minimal#:#Minimalistisch
+select_style#:#Stil auswählen
+select_style_image_position#:#Bildposition auswählen
+select_aligment_image_position#:#Bildposition auswählen
 button_download#:#Herunterladen
 
 height#:#Höhe
