@@ -46,7 +46,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
     }
     function getComponentType(): string
     {
-        return self::ID; // Identificador del componente
+        return self::ID;
     }
 
 
@@ -66,17 +66,11 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
         return "AImageGenerator";
     }
 
-    /**
-     * Define si este plugin puede usarse dentro de ciertos tipos de contenido.
-     */
     public function isValidParentType(string $a_type): bool
     {
-        return true; // Permitir que se use en cualquier tipo de página
+        return true;
     }
 
-    /**
-     * Define si este plugin es válido para ciertos objetos en ILIAS.
-     */
     public function isValidObjectType($a_type): bool
     {
         return true;

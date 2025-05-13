@@ -11,7 +11,7 @@ use ILIAS\UI\Renderer;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use platform\AImageGeneratorConfig;
 
-class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
+class  ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
 {
     public const LP_SESSION_ID = 'xaig_lp_session_state';
     private Renderer $renderer;
@@ -158,13 +158,16 @@ class ilAImageGeneratorPluginGUI extends ilPageComponentPluginGUI
         }
     }
 
+    /**
+     * @throws ilCtrlException
+     * @throws Exception
+     */
     public function edit(): void
     {
         global $tpl, $DIC, $ilCtrl;
 
         $this->editorGUI = new ilAImageGeneratorEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptFormWithProperties($this->getProperties());
-        //dump($form->getInputs()->getValues());exit();
         $irss = $DIC->resourceStorage();
         $file_name = $irss->consume()->src(new ResourceIdentification($this->getProperties()["imageId"]))->getSrc();
         $image = $this->editorGUI->generateImage($file_name ?? null);
