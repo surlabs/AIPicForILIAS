@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * Disclaimer: This file is part of the AImageGenerator Repository Object plugin for ILIAS.
+ * Disclaimer: This file is part of the AIPic Repository Object plugin for ILIAS.
  */
 
 
@@ -16,16 +16,16 @@ use ILIAS\FileUpload\Handler\HandlerResult;
 use ILIAS\FileUpload\Handler\BasicFileInfoResult;
 
 /**
- * Class UploadServiceAImageGeneratorGUI
+ * Class UploadServiceAIPicGUI
  * @authors Jesús Copado, Daniel Cazalla, Saúl Díaz, Juan Aguilar <info@surlabs.es>
  *
- * @ilCtrl_isCalledBy UploadServiceAImageGeneratorGUI : ilAImageGeneratorPluginGUI, ilObjPluginDispatchGUI, ilPCPluggedGUI
- * @ilCtrl_isCalledBy UploadServiceAImageGeneratorGUI : ilUIPluginRouterGUI, ilAImageGeneratorPluginGUI
+ * @ilCtrl_isCalledBy UploadServiceAIPicGUI : ilAIPicPluginGUI, ilObjPluginDispatchGUI, ilPCPluggedGUI
+ * @ilCtrl_isCalledBy UploadServiceAIPicGUI : ilUIPluginRouterGUI, ilAIPicPluginGUI
  */
-class UploadServiceAImageGeneratorGUI extends AbstractCtrlAwareUploadHandler
+class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
 {
     private ResourceStorage $storage;
-    private StorageStakeHolderAIGenerator $stakeholder;
+    private StorageStakeHolderAIPic $stakeholder;
 
     private ilLogger $logger;
 
@@ -36,13 +36,13 @@ class UploadServiceAImageGeneratorGUI extends AbstractCtrlAwareUploadHandler
         parent::__construct();
 
         $this->storage = $DIC->resourceStorage();
-        $this->stakeholder = new StorageStakeHolderAIGenerator();
+        $this->stakeholder = new StorageStakeHolderAIPic();
         $this->logger = $DIC->logger()->root();
     }
 
     public function getFileIdentifierParameterName(): string
     {
-        return "aig_file";
+        return "aip_file";
     }
 
     /**

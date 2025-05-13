@@ -1,8 +1,8 @@
 <?php
 
-use platform\AImageGeneratorConfig;
+use platform\AIPicConfig;
 
-class AImageGeneratorRequestImpl extends AImageGeneratorRequestAbstract {
+class AIPicRequestImpl extends AIPicRequestAbstract {
 
     private ?string $autheticationKeyLabel;
     private ?string $autheticationValue;
@@ -15,8 +15,8 @@ class AImageGeneratorRequestImpl extends AImageGeneratorRequestAbstract {
         parent::__construct();
     }
 
-    public static function from(AImageGeneratorConfig $config): AImageGeneratorRequestImpl {
-        $generatorRequest = new AImageGeneratorRequestImpl();
+    public static function from(AIPicConfig $config): AIPicRequestImpl {
+        $generatorRequest = new AIPicRequestImpl();
         $generatorRequest->withUrl($config->getApiUrl());
         $generatorRequest->withPromptContext($config->getPromptContext());
         $generatorRequest->withRequestPromptKey($config->getRequestBodyPromptKey());
@@ -43,22 +43,22 @@ class AImageGeneratorRequestImpl extends AImageGeneratorRequestAbstract {
         return $generatorRequest;
     }
 
-    public function withAuthenticationKeyLabel(string $autheticationKeyLabel): AImageGeneratorRequestImpl {
+    public function withAuthenticationKeyLabel(string $autheticationKeyLabel): AIPicRequestImpl {
         $this->autheticationKeyLabel = $autheticationKeyLabel;
         return $this;
     }
 
-    public function withAuthenticationValue(string $autheticationValue): AImageGeneratorRequestImpl {
+    public function withAuthenticationValue(string $autheticationValue): AIPicRequestImpl {
         $this->autheticationValue = $autheticationValue;
         return $this;
     }
 
-    public function withAdditionalHeaderOptions(string $additionalHeaderOptions): AImageGeneratorRequestImpl {
+    public function withAdditionalHeaderOptions(string $additionalHeaderOptions): AIPicRequestImpl {
         $this->additionalHeaderOptions = $additionalHeaderOptions;
         return $this;
     }
 
-    public function withAdditionalRequestBodyOptions(string $additionalRequestBodyOptions): AImageGeneratorRequestImpl {
+    public function withAdditionalRequestBodyOptions(string $additionalRequestBodyOptions): AIPicRequestImpl {
         $this->additionalRequestBodyOptions = $additionalRequestBodyOptions;
         return $this;
     }
@@ -87,7 +87,7 @@ class AImageGeneratorRequestImpl extends AImageGeneratorRequestAbstract {
         if($this->autheticationKeyLabel && $this->autheticationValue) {
             $headerOptions[] = $this->autheticationKeyLabel . ": " . $this->autheticationValue;
         }
-        $additionalParsedHeaders = AImageGeneratorRequestAbstract::getArrayFromString($this->getAdditionalHeaderOptions() ?? '');
+        $additionalParsedHeaders = AIPicRequestAbstract::getArrayFromString($this->getAdditionalHeaderOptions() ?? '');
         $this->withHeader(array_merge($headerOptions, $additionalParsedHeaders));
         return $this->header;
     }

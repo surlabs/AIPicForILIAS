@@ -69,10 +69,10 @@ $fields = array(
         "notnull" => false
     ]
 );
-if(!$db->tableExists("aig_config")) {
-    $db->createTable("aig_config", $fields);
-    $db->createSequence('aig_config');
-    $db->addPrimaryKey("aig_config", array("id"));
+if(!$db->tableExists("aip_config")) {
+    $db->createTable("aip_config", $fields);
+    $db->createSequence('aip_config');
+    $db->addPrimaryKey("aip_config", array("id"));
 }
 ?>
 

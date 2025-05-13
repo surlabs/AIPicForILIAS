@@ -5,24 +5,24 @@ use ILIAS\COPage\Editor\Server\UIWrapper;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use JetBrains\PhpStorm\NoReturn;
 
-class ilAImageGeneratorEditorGUI
+class ilAIPicEditorGUI
 {
 
     protected ilTemplate $template;
 
     private ilPageComponentPlugin $plugin;
 
-    private AImageGeneratorRequestInterface $aimageGeneratorProvider;
+    private AIPicRequestInterface $AIPicProvider;
 
-    private UploadServiceAImageGeneratorGUI $uploader;
+    private UploadServiceAIPicGUI $uploader;
 
-    private string $placeHolderUrl = "./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/placeholder.png";
+    private string $placeHolderUrl = "./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/placeholder.png";
 
-    public function __construct(ilPageComponentPlugin $plugin, AImageGeneratorRequestInterface $aimageGeneratorProvider)
+    public function __construct(ilPageComponentPlugin $plugin, AIPicRequestInterface $AIPicProvider)
     {
         $this->plugin = $plugin;
-        $this->aimageGeneratorProvider = $aimageGeneratorProvider;
-        $this->uploader = new UploadServiceAImageGeneratorGUI();
+        $this->AIPicProvider = $AIPicProvider;
+        $this->uploader = new UploadServiceAIPicGUI();
     }
 
 
@@ -99,14 +99,14 @@ class ilAImageGeneratorEditorGUI
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
 
         $DIC->ctrl()->setParameterByClass(
-            'ilAImageGeneratorPluginGUI',
+            'ilAIPicPluginGUI',
             'methodDesired',
             'saveImage'
         );
 
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', "insert");
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "insert");
 
-        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("aimageGeneratorForm");
+        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
 
     }
 
@@ -140,14 +140,14 @@ class ilAImageGeneratorEditorGUI
 
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
         $DIC->ctrl()->setParameterByClass(
-            'ilAImageGeneratorPluginGUI',
+            'ilAIPicPluginGUI',
             'methodDesired',
             'saveImage'
         );
 
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', "update");
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "update");
 
-        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("aimageGeneratorForm");
+        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
 
     }
 
@@ -194,7 +194,7 @@ class ilAImageGeneratorEditorGUI
 
             $content_type = $params['rsct'] ?? 'image/png';
             $now = date_create()->format('Y-m-d_H-i-s');
-            $fileName = "AImageGenerator$$now.$etension";
+            $fileName = "AIPic$$now.$etension";
 
             header('Content-Description: File Transfer');
             header("Content-Type: $content_type");
@@ -219,14 +219,14 @@ class ilAImageGeneratorEditorGUI
         $renderer = $DIC->ui()->renderer();
         $image = $ui->image()->responsive($url, "Generated_image");
 
-        $urlButtonDownload = $ilCtrl->getLinkTargetByClass("ilAImageGeneratorPluginGUI", "insert");
+        $urlButtonDownload = $ilCtrl->getLinkTargetByClass("ilAIPicPluginGUI", "insert");
         $buttonDownload = $ui->button()->standard($this->plugin->txt("button_download"), "#")->withOnLoadCode(function ($id) use ($urlButtonDownload) {
             return "$(\"#$id\").click(function() { callSaveEndpoint(\"$urlButtonDownload\"); });";
         });
-        $ilCtrl->setParameterByClass('ilAImageGeneratorPluginGUI', 'methodDesired', 'sendPrompt');
-        $urlButtonPrompt = $ilCtrl->getLinkTargetByClass("ilAImageGeneratorPluginGUI", "insert");
+        $ilCtrl->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'sendPrompt');
+        $urlButtonPrompt = $ilCtrl->getLinkTargetByClass("ilAIPicPluginGUI", "insert");
 
-        $urlBase = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', 'insert');
+        $urlBase = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', 'insert');
 
         $buttonGenerateImage = $ui->button()->standard($this->plugin->txt("generate_image"), "#")->withOnLoadCode(function ($id) use ($urlButtonPrompt, $urlBase) {
             return "$(\"#$id\").click(function(e) { e.preventDefault(); resendForm(\"$urlButtonPrompt\", \"$urlBase\"); });";
@@ -243,7 +243,7 @@ class ilAImageGeneratorEditorGUI
                                     top: 50%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);">' .
-            '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/loading.gif" alt="loading"/>'
+            '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/loading.gif" alt="loading"/>'
             . '</div>' .
             $renderer->render($image) .
             '</div>' .
@@ -260,10 +260,10 @@ class ilAImageGeneratorEditorGUI
 
         $rawPrompt = $_POST["prompt"] ?? "";
         $style = $_POST["styles"] ?? "realistic";
-        $success = $this->aimageGeneratorProvider->sendPrompt($rawPrompt);
+        $success = $this->AIPicProvider->sendPrompt($rawPrompt);
 
         if ($success) {
-            $res = $this->aimageGeneratorProvider->getImagesUrlsArray();
+            $res = $this->AIPicProvider->getImagesUrlsArray();
             header('Content-type: application/json');
             if (count($res) !== 0) {
                 echo json_encode(["image" => $res[0]]);

@@ -1,20 +1,20 @@
-obj_xaig#:#AImage Generator
-objs_xaig#:#AImage Generators
-obj_xaig_duplicate#:#Copy
-objs_xaig_duplicate#:#Copy AImage Generators
-obj_xaig_select#:#Select AImage Generator
-xaig_add#:#Add AImage Generator
-xaig_new#:#Add New AImage Generator
-xaig_read#:#Read access to AImage Generator
-xaig_write#:#Edit AImage Generator
-xaig_delete#:#Delete AImage Generator
-xaig_visible#:#AImage Generator is visible
-xaig_edit_permission#:#Change permission settings
-crs_create_xaig#:#Create AImage Generator
-grp_create_xaig#:#Create AImage Generator
-fold_create_xaig#:#Create AImage Generator
-root_create_xaig#:#Create AImage Generator
-cat_create_xaig#:#Create AImage Generator
+obj_xaip#:#AIPic
+objs_xaip#:#AIPics
+obj_xaip_duplicate#:#Copy
+objs_xaip_duplicate#:#Copy AIPics
+obj_xaip_select#:#Select AIPic
+xaip_add#:#Add AIPic
+xaip_new#:#Add New AIPic
+xaip_read#:#Read access to AIPic
+xaip_write#:#Edit AIPic
+xaip_delete#:#Delete AIPic
+xaip_visible#:#AIPic is visible
+xaip_edit_permission#:#Change permission settings
+crs_create_xaip#:#Create AIPic
+grp_create_xaip#:#Create AIPic
+fold_create_xaip#:#Create AIPic
+root_create_xaip#:#Create AIPic
+cat_create_xaip#:#Create AIPic
 title#:#Title
 description#:#Description
 online#:#Online
@@ -43,7 +43,7 @@ lp_status#:#Learning Progress
 update_successful#:#Update Successful
 news_title#:#Title (en)
 news_content#:#Content (en)
-xaig_copy#:#Copy AImage Generator
+xaip_copy#:#Copy AIPic
 offline#:#Offline
 status#:#Status
 
@@ -51,7 +51,7 @@ prompt_image_input#:#Write a prompt for the image
 prompt_selector#:#Enter a prompt
 prompt#:#Prompt
 image_generated#:#Image Generated
-xaig_prompt#:#Prompt
+xaip_prompt#:#Prompt
 generate_image#:#Generate Image
 
 select_aligment#:#Select alignment
@@ -101,7 +101,7 @@ response_body_subkey_description#:#Subkey for specifying the image data in the r
 config_saved#:#Configuration saved successfully
 no_images_found#:#No images found
 
-cmd_insert#:#Insert AImage Generator
+cmd_insert#:#Insert AIPic
 component_title#:#Title
 component_aigenerator_file#:#AIgenerator File
 component_width#:#Width

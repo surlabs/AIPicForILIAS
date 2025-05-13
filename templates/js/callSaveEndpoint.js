@@ -30,7 +30,7 @@ function callSaveEndpoint(url) {
             console.log("urlBlob:", urlBlob);
             const a = document.createElement('a');
             a.href = urlBlob;
-            a.download = "AImageGenerator.png";
+            a.download = "AIPic.png";
             document.body.appendChild(a);
             a.click();
 

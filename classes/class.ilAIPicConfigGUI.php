@@ -4,14 +4,14 @@
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
-use platform\AImageGeneratorConfig;
+use platform\AIPicConfig;
 
 /**
- * Class ilAImageGeneratorConfigGUI
+ * Class ilAIPicConfigGUI
  * @authors Sergio Santiago, Abraham Morales <info@surlabs.es>
- * @ilCtrl_IsCalledBy  ilAImageGeneratorConfigGUI: ilObjComponentSettingsGUI
+ * @ilCtrl_IsCalledBy  ilAIPicConfigGUI: ilObjComponentSettingsGUI
  */
-class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
+class ilAIPicConfigGUI extends ilPluginConfigGUI
 {
 
     private Factory $ui;
@@ -34,7 +34,7 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         return preg_match('/\b((https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i', $url) == 1;
     }
 
-    public function generateConfigForm(AImageGeneratorConfig $currentConfig): Standard
+    public function generateConfigForm(AIPicConfig $currentConfig): Standard
     {
         global $DIC;
         $fieldsHeader = [];
@@ -86,11 +86,11 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $sectionResponseBody = $this->ui->input()->field()->section($fieldResponseBody, $this->plugin_object->txt("response"));
 
         $DIC->ctrl()->setParameterByClass(
-            'ilAImageGeneratorConfigGUI',
+            'ilAIPicConfigGUI',
             'saveConfig',
             'config'
         );
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorConfigGUI', "saveConfig");
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicConfigGUI', "saveConfig");
 
         // Form building
         $form = $this->ui->input()->container()->form()->standard($form_action, [$sectionHeader, $sectionRequestBody, $sectionResponseBody]);
@@ -109,7 +109,7 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
     public function configure(): void
     {
         global $DIC;
-        $currentConfig = new AImageGeneratorConfig();
+        $currentConfig = new AIPicConfig();
         $currentConfig->loadFromDB();
         $form = $this->generateConfigForm($currentConfig);
 
@@ -123,7 +123,7 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
     public function saveConfig(): void
     {
         global $DIC;
-        $currentConfig = new AImageGeneratorConfig();
+        $currentConfig = new AIPicConfig();
         $currentConfig->loadFromDB();
         $form = $this->generateConfigForm($currentConfig);
         $request = $DIC->http()->request();
@@ -137,7 +137,7 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $this->tpl->setContent($message . $this->renderer->render($form));
     }
 
-    private function createConfigFromForm(Standard $form, AImageGeneratorConfig $config): AImageGeneratorConfig
+    private function createConfigFromForm(Standard $form, AIPicConfig $config): AIPicConfig
     {
         $data = $form->getData();
         if (isset($data)) {

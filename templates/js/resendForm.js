@@ -8,11 +8,11 @@ for (let i = 0; i < document.getElementsByClassName("ui-input-file-input-dropzon
 }
 
 const prompt = $('.il-section-input .ui-input-textarea textarea');
-const styleSelect = $('select[name="aimageGeneratorForm/input_6/input_9"]');
+const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
 
 
 const generateButton = $('#redirectButton button');
-const widthInputs = document.getElementsByName("aimageGeneratorForm/input_5/input_9")
+const widthInputs = document.getElementsByName("AIPicForm/input_5/input_9")
 const loadingSpinner = document.getElementById('loadingSpinner');
 
 function isWidthInputEmpty() {

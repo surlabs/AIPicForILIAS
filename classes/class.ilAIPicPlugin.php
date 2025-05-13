@@ -18,13 +18,13 @@
 
 include_once("./Services/COPage/classes/class.ilPageComponentPlugin.php");
 
-class ilAImageGeneratorPlugin extends ilPageComponentPlugin
+class ilAIPicPlugin extends ilPageComponentPlugin
 {
-    public const ID = "xaig";
+    public const ID = "xaip";
 
     private static $instance;
 
-    private UploadServiceAImageGeneratorGUI $uploader;
+    private UploadServiceAIPicGUI $uploader;
 
     public static function getInstance()
     {
@@ -33,7 +33,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
             $component_repository = $DIC["component.repository"];
 
-            $info = $component_repository->getPluginByName("AImageGenerator");
+            $info = $component_repository->getPluginByName("AIPic");
 
             $component_factory = $DIC["component.factory"];
 
@@ -52,7 +52,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     function getClass(): string
     {
-        return "ilAImageGeneratorGUI";
+        return "ilAIPicGUI";
     }
 
     protected function uninstallCustom() : void
@@ -63,7 +63,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     function getPluginName(): string
     {
-        return "AImageGenerator";
+        return "AIPic";
     }
 
     public function isValidParentType(string $a_type): bool
@@ -78,7 +78,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
-        $this->uploader = new UploadServiceAImageGeneratorGUI();
+        $this->uploader = new UploadServiceAIPicGUI();
         if($a_properties["imageId"] != null) {
             $this->uploader->removeFromOutside($a_properties["imageId"]);
         }

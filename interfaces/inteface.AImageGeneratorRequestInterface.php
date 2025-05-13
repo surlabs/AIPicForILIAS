@@ -1,6 +1,6 @@
 <?php
 
-interface AImageGeneratorRequestInterface
+interface AIPicRequestInterface
 {
     public function sendPrompt(string $prompt): bool|string;
     public function getImagesUrlsArray(): array;

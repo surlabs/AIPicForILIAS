@@ -3,9 +3,9 @@
 namespace platform;
 
 use DateTime;
-use db\AImageGeneratorDatabase;
+use db\AIPicDatabase;
 
-class AImageGeneratorConfig {
+class AIPicConfig {
 
     private int $id = 0;
     private string $apiUrl;
@@ -42,7 +42,7 @@ class AImageGeneratorConfig {
     public function loadFromDB(): void
     {
 
-        $database = new AImageGeneratorDatabase();
+        $database = new AIPicDatabase();
         $result = $database->getConfig();
 
         if (isset($result[0])) {
@@ -74,9 +74,9 @@ class AImageGeneratorConfig {
         }
     }
 
-    public function save(): AImageGeneratorConfig
+    public function save(): AIPicConfig
     {
-        $database = new AImageGeneratorDatabase();
+        $database = new AIPicDatabase();
 
         $data = [
             "api_url" => $this->getApiUrl(),
@@ -94,14 +94,14 @@ class AImageGeneratorConfig {
         ];
 
         if ($this->getId() > 0) {
-            $database->update("aig_config", $data, ["id" => $this->getId()]);
+            $database->update("aip_config", $data, ["id" => $this->getId()]);
         } else {
-            $id = $database->nextId("aig_config");
+            $id = $database->nextId("aip_config");
 
             $this->setId($id);
 
             $data["id"] = $id;
-            $database->insert("aig_config", $data);
+            $database->insert("aip_config", $data);
         }
         return $this;
     }

@@ -1,7 +1,7 @@
 <?php
-$id = "xaig";
+$id = "xaip";
 
-$version = "1.0.0";
+$version = "1.0.1";
 
 $ilias_min_version = "9.0";
 $ilias_max_version = "9.999";

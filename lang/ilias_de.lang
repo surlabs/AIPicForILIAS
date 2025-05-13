@@ -1,20 +1,20 @@
-obj_xaig#:#AImage Generator
-objs_xaig#:#AImage Generators
-obj_xaig_duplicate#:#Kopieren
-objs_xaig_duplicate#:#Kopiere AImage Generators
-obj_xaig_select#:#Wähle AImage Generator
-xaig_add#:#AImage Generator hinzufügen
-xaig_new#:#Neues AImage Generator
-xaig_read#:#Lesezugriff auf AImage Generator
-xaig_write#:#AImage Generator bearbeiten
-xaig_delete#:#AImage Generator löschen
-xaig_visible#:#AImage Generator ist sichtbar
-xaig_edit_permission#:#Zugriffsrecht bearbeiten
-crs_create_xaig#:#Erstelle AImage Generator
-grp_create_xaig#:#Erstelle AImage Generator
-fold_create_xaig#:#Erstelle AImage Generator
-root_create_xaig#:#Erstelle AImage Generator
-cat_create_xaig#:#Erstelle AImage Generator
+obj_xaip#:#AIPic
+objs_xaip#:#AIPics
+obj_xaip_duplicate#:#Kopieren
+objs_xaip_duplicate#:#Kopiere AIPics
+obj_xaip_select#:#Wähle AIPic
+xaip_add#:#AIPic hinzufügen
+xaip_new#:#Neues AIPic
+xaip_read#:#Lesezugriff auf AIPic
+xaip_write#:#AIPic bearbeiten
+xaip_delete#:#AIPic löschen
+xaip_visible#:#AIPic ist sichtbar
+xaip_edit_permission#:#Zugriffsrecht bearbeiten
+crs_create_xaip#:#Erstelle AIPic
+grp_create_xaip#:#Erstelle AIPic
+fold_create_xaip#:#Erstelle AIPic
+root_create_xaip#:#Erstelle AIPic
+cat_create_xaip#:#Erstelle AIPic
 title#:#Titel
 description#:#Beschreibung
 online#:#Online
@@ -43,14 +43,14 @@ lp_status#:#Lernfortschritt
 update_successful#:Die Änderungen wurden gespeichert.
 news_title#:#Titel (en)
 news_content#:#Inhalt (en)
-xaig_copy#:#AImage Generator kopieren
+xaip_copy#:#AIPic kopieren
 offline#:#Offline
 status#:#Status
 
 prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
 prompt_selector#:#Geben Sie eine Aufforderung ein
 prompt#:#Prompt
-xaig_prompt#:#Prompt
+xaip_prompt#:#Prompt
 image_generated#:#Bild generiert
 generate_image#:#Bild generieren
 
@@ -100,9 +100,9 @@ response_body_subkey_description#:#Unterschlüssel zum Angeben der Bilddaten im 
 config_saved#:#Konfiguration erfolgreich gespeichert
 no_images_found#:#Keine Bilder gefunden
 
-cmd_insert#:#AImageGenerator einfügen
+cmd_insert#:#AIPic einfügen
 component_title#:#Titel
-component_aigenerator_file#:#AImageGenerator-Datei
+component_aigenerator_file#:#AIPic-Datei
 component_width#:#Breite
 component_height#:#Höhe
 component_enableShiftDragZoom#:#Verschieben und Zoomen aktivieren
