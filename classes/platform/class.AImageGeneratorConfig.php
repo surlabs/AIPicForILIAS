@@ -14,6 +14,7 @@ class AImageGeneratorConfig {
     private ?string $additionalHeaderOptions;
     private string $requestBodyPromptKey;
     private ?string $promptContext;
+    private ?string $model;
     private ?string $additionalRequestBodyOptions;
     private string $responseKey;
     private ?string $responseSubkey;
@@ -52,6 +53,7 @@ class AImageGeneratorConfig {
             $this->setAdditionalHeaderOptions($result[0]["additional_header_options"]);
             $this->setRequestBodyPromptKey($result[0]["request_body_prompt"]);
             $this->setPromptContext($result[0]["prompt_context"]);
+            $this->setModel($result[0]["model"]);
             $this->setAdditionalRequestBodyOptions($result[0]["additional_body_options"]);
             $this->setResponseKey($result[0]["response_body_key"]);
             $this->setResponseSubkey($result[0]["response_body_subkey"]);
@@ -64,6 +66,7 @@ class AImageGeneratorConfig {
             $this->setAdditionalHeaderOptions("");
             $this->setRequestBodyPromptKey("");
             $this->setPromptContext("");
+            $this->setModel("");
             $this->setAdditionalRequestBodyOptions("");
             $this->setResponseKey("");
             $this->setResponseSubkey("");
@@ -82,6 +85,7 @@ class AImageGeneratorConfig {
             "additional_header_options" => $this->getAdditionalHeaderOptions(),
             "request_body_prompt" => $this->getRequestBodyPromptKey(),
             "prompt_context" => $this->getPromptContext(),
+            "model" => $this->getModel(),
             "additional_body_options" => $this->getAdditionalRequestBodyOptions(),
             "response_body_key" => $this->getResponseKey(),
             "response_body_subkey" => $this->getResponseSubkey(),
@@ -170,6 +174,16 @@ class AImageGeneratorConfig {
     public function setPromptContext(string $promptContext): void
     {
         $this->promptContext = $promptContext;
+    }
+
+    public function getModel(): string
+    {
+        return $this->model;
+    }
+    public function setModel(string $model): void
+    {
+        $this->model = $model;
+
     }
 
     public function getAdditionalRequestBodyOptions(): string

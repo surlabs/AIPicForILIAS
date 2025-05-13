@@ -1,11 +1,11 @@
 <?php
 
-use ILIAS\COPage\Editor\Components\PageComponentEditor;
+
 use ILIAS\COPage\Editor\Server\UIWrapper;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use JetBrains\PhpStorm\NoReturn;
 
-class ilAImageGeneratorEditorGUI implements PageComponentEditor
+class ilAImageGeneratorEditorGUI
 {
 
     protected ilTemplate $template;
@@ -211,11 +211,11 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         $buttonDownload = $ui->button()->standard($this->plugin->txt("button_download"), "#")->withOnLoadCode(function ($id) use ($urlButtonDownload) {
             return "$(\"#$id\").click(function() { callSaveEndpoint(\"$urlButtonDownload\"); });";
         });
-
         $ilCtrl->setParameterByClass('ilAImageGeneratorPluginGUI', 'methodDesired', 'sendPrompt');
         $urlButtonPrompt = $ilCtrl->getLinkTargetByClass("ilAImageGeneratorPluginGUI", "insert");
 
         $urlBase = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', 'insert');
+
         $buttonGenerateImage = $ui->button()->standard($this->plugin->txt("generate_image"), "#")->withOnLoadCode(function ($id) use ($urlButtonPrompt, $urlBase) {
             return "$(\"#$id\").click(function(e) { e.preventDefault(); resendForm(\"$urlButtonPrompt\", \"$urlBase\"); });";
         });
@@ -245,6 +245,7 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
     #[NoReturn] public function sendPromptByJs($httpCode = 200): void
     {
         http_response_code($httpCode);
+
         $sucess = $this->aimageGeneratorProvider->sendPrompt($_POST["prompt"]);
         if($sucess) {
             $res = $this->aimageGeneratorProvider->getImagesUrlsArray();

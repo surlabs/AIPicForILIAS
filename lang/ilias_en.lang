@@ -81,6 +81,8 @@ authentication_value_description#:#Authentication value, for example: Bearer XXX
 header_options#:#Additional header options
 header_options_description#:#This field is optional. You can add additional headers to the request, such as Content-Type. Enter all options separated by commas, with key-value pairs formatted as key:value.
 request_body_prompt#:#Request body prompt key
+request_model#:#Request model
+request_model_description#:#Key for specifying the model that will be used to generate the image.
 request_body_prompt_context#:#Prompt context
 request_body_prompt_context_description#:#Prompt context description
 request_body_prompt_description#:#Key for specifying the prompt in the request body.

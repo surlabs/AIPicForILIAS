@@ -1,8 +1,6 @@
 <?php
 
 
-
-
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
@@ -10,10 +8,9 @@ use platform\AImageGeneratorConfig;
 
 /**
  * Class ilAImageGeneratorConfigGUI
- * @authors Jesús Copado, Daniel Cazalla, Saúl Díaz, Juan Aguilar <info@surlabs.es>
+ * @authors Sergio Santiago, Abraham Morales <info@surlabs.es>
  * @ilCtrl_IsCalledBy  ilAImageGeneratorConfigGUI: ilObjComponentSettingsGUI
  */
-
 class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
 {
 
@@ -32,11 +29,13 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $this->tpl = $tpl;
     }
 
-    function isValidUrl($url): bool{
+    function isValidUrl($url): bool
+    {
         return preg_match('/\b((https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i', $url) == 1;
     }
 
-    public function generateConfigForm(AImageGeneratorConfig $currentConfig): Standard {
+    public function generateConfigForm(AImageGeneratorConfig $currentConfig): Standard
+    {
         global $DIC;
         $fieldsHeader = [];
         $fieldRequestsBody = [];
@@ -49,20 +48,30 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $urlInput = $this->ui->input()->field()->text($this->plugin_object->txt("api_url"), $this->plugin_object->txt("api_url_description"))->withAdditionalTransformation($urlChecker)->withValue($currentConfig->getApiUrl() ?? "")->withRequired(true);
         $autenticationKey = $this->ui->input()->field()->text($this->plugin_object->txt("authentication_key"), $this->plugin_object->txt("authentication_key_description"))->withValue($currentConfig->getAutheticationKeyLabel() ?? "");
         $autenticationValue = $this->ui->input()->field()->text($this->plugin_object->txt("authentication_value"), $this->plugin_object->txt("authentication_value_description"))->withValue($currentConfig->getAutheticationValue() ?? "");
-        $heaerOptions = $this->ui->input()->field()->text($this->plugin_object->txt("header_options"), $this->plugin_object->txt("header_options_description"))->withValue($currentConfig->getAdditionalHeaderOptions() ?? "");
+
+        // #TODO Add option to add more headers options
+        $headerOptions = $this->ui->input()->field()->text($this->plugin_object->txt("header_options"), $this->plugin_object->txt("header_options_description"))->withValue($currentConfig->getAdditionalHeaderOptions() ?? "");
 
         $fieldsHeader["urlInput"] = $urlInput;
         $fieldsHeader["autenticationKey"] = $autenticationKey;
         $fieldsHeader["autenticationValue"] = $autenticationValue;
-        $fieldsHeader["headerOptions"] = $heaerOptions;
+        $fieldsHeader["headerOptions"] = $headerOptions;
 
         $sectionHeader = $this->ui->input()->field()->section($fieldsHeader, $this->plugin_object->txt("header_request"));
 
         $requestBody = $this->ui->input()->field()->text($this->plugin_object->txt("request_body_prompt"), $this->plugin_object->txt("request_body_prompt_description"))->withValue($currentConfig->getRequestBodyPromptKey() ?? "")->withRequired(true);
+
+        $options  = array(
+            "dall-e-2" => "Dall-e-2",
+            "dall-e-3" => "Dall-e-3",
+        );
+
+        $requestBodyModel = $this->ui->input()->field()->select($this->plugin_object->txt("request_model"), $options,$this->plugin_object->txt("request_model_description"));
         $requestBodyContext = $this->ui->input()->field()->textarea($this->plugin_object->txt("request_body_prompt_context"), $this->plugin_object->txt("request_body_prompt_context_description"))->withValue($currentConfig->getPromptContext() ?? "");
         $requestBodyOptions = $this->ui->input()->field()->text($this->plugin_object->txt("request_body_options"), $this->plugin_object->txt("request_body_options_description"))->withValue($currentConfig->getAdditionalRequestBodyOptions() ?? "");
 
         $fieldRequestsBody["requestBody"] = $requestBody;
+        $fieldRequestsBody["requestModel"] = $requestBodyModel;
         $fieldRequestsBody["requestBodyContext"] = $requestBodyContext;
         $fieldRequestsBody["requestBodyOptions"] = $requestBodyOptions;
 
@@ -83,13 +92,11 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         );
         $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorConfigGUI', "saveConfig");
 
-
-        // Construcción del formulario
+        // Form building
         $form = $this->ui->input()->container()->form()->standard($form_action, [$sectionHeader, $sectionRequestBody, $sectionResponseBody]);
 
         return $form;
     }
-
 
     public function performCommand(string $cmd): void
     {
@@ -121,7 +128,7 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $form = $this->generateConfigForm($currentConfig);
         $request = $DIC->http()->request();
         $message = "";
-        if($_SERVER['REQUEST_METHOD'] == "POST") {
+        if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $form = $form->withRequest($request);
             $currentConfig = $this->createConfigFromForm($form, $currentConfig);
             $currentConfig->save();
@@ -130,14 +137,16 @@ class ilAImageGeneratorConfigGUI extends ilPluginConfigGUI
         $this->tpl->setContent($message . $this->renderer->render($form));
     }
 
-    private function createConfigFromForm(Standard $form, AImageGeneratorConfig $config): AImageGeneratorConfig {
+    private function createConfigFromForm(Standard $form, AImageGeneratorConfig $config): AImageGeneratorConfig
+    {
         $data = $form->getData();
-        if(isset($data)) {
+        if (isset($data)) {
             $config->setApiUrl(trim($data[0]['urlInput']));
             $config->setAutheticationKeyLabel(trim($data[0]['autenticationKey']));
             $config->setAutheticationValue(trim($data[0]['autenticationValue']));
             $config->setAdditionalHeaderOptions(str_replace(" ", "", $data[0]['headerOptions']));
             $config->setRequestBodyPromptKey(trim($data[1]['requestBody']));
+            $config->setModel(trim($data[1]['requestModel']));
             $config->setPromptContext($data[1]['requestBodyContext']);
             $config->setAdditionalRequestBodyOptions(str_replace(" ", "", $data[1]['requestBodyOptions']));
             $config->setResponseKey(trim($data[2]['responseLabel']));

@@ -40,6 +40,11 @@ $fields = array(
         'length' => 255,
         'notnull' => false
     ),
+    'model' => array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => false
+    ),
     'additional_body_options' => array(
         'type' => 'text',
         'length' => 255,
