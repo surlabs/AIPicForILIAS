@@ -61,12 +61,7 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
 
         $requestBody = $this->ui->input()->field()->text($this->plugin_object->txt("request_body_prompt"), $this->plugin_object->txt("request_body_prompt_description"))->withValue($currentConfig->getRequestBodyPromptKey() ?? "")->withRequired(true);
 
-        $options  = array(
-            "dall-e-2" => "Dall-e-2",
-            "dall-e-3" => "Dall-e-3",
-        );
-
-        $requestBodyModel = $this->ui->input()->field()->select($this->plugin_object->txt("request_model"), $options,$this->plugin_object->txt("request_model_description"));
+        $requestBodyModel = $this->ui->input()->field()->text($this->plugin_object->txt("request_model"),$this->plugin_object->txt("request_model_description"))->withValue($currentConfig->getModel() ?? "")->withRequired(false);
         $requestBodyContext = $this->ui->input()->field()->textarea($this->plugin_object->txt("request_body_prompt_context"), $this->plugin_object->txt("request_body_prompt_context_description"))->withValue($currentConfig->getPromptContext() ?? "");
         $requestBodyOptions = $this->ui->input()->field()->text($this->plugin_object->txt("request_body_options"), $this->plugin_object->txt("request_body_options_description"))->withValue($currentConfig->getAdditionalRequestBodyOptions() ?? "");
 

@@ -87,7 +87,7 @@ header_options#:#Zusätzliche Headeroptionen
 header_options_description#:#Dieses Feld ist optional. Sie können der Anfrage zusätzliche Header hinzufügen, z. B. Content-Type. Geben Sie alle Optionen durch Kommas getrennt ein, wobei die Schlüssel-Wert-Paare als Schlüssel:Wert formatiert sind.
 request_body_prompt#:#Anforderungskörper-Prompt-Schlüssel
 request_model#:#Anforderungsmodell
-request_model_description#:#Schlüssel zur Angabe des Modells, das für die Erstellung des Bildes verwendet wird.
+request_model_description#:#Geben Sie das Modell an, das für die Erstellung des Bildes verwendet werden soll.
 request_body_prompt_description#:#Schlüssel für die Angabe des Bildes im Anforderungskörper. Zum Beispiel, wenn Daten wie Daten => Bild.jpg erscheinen, wäre der Schlüssel Daten.
 request_body_prompt_context#:#Prompt-Kontext
 request_body_prompt_context_description#:#Kontext für die Angabe des Bildes im Anforderungskörper.
@@ -96,7 +96,7 @@ response_body_key#:#Antwortkörperschlüssel
 response_body_key_description#:#Schlüssel zur Angabe der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => image.jpg aussehen, wäre der Schlüssel data.
 response_body_subkey#:#Antwortkörpersubkey
 response_body_subkey_description#:#Unterschlüssel zum Angeben der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => url => image.jpg aussehen, wäre der Unterschlüssel url.
-
+configuration#:#Konfiguration
 config_saved#:#Konfiguration erfolgreich gespeichert
 no_images_found#:#Keine Bilder gefunden
 
