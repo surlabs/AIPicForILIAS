@@ -96,7 +96,7 @@ class ilAIPicEditorGUI
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true);
 
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"));
-        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
+        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass(
             'ilAIPicPluginGUI',
@@ -134,11 +134,11 @@ class ilAIPicEditorGUI
         );
 
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue($properties["aligments"] ?? "center")->withRequired(true);
-        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image_position"))->withValue($properties["image_style"] ?? "realistic")->withRequired(false);
+        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image_position"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"] ?? 100);
 
 
-        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
+        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
         $DIC->ctrl()->setParameterByClass(
             'ilAIPicPluginGUI',
             'methodDesired',
@@ -236,14 +236,14 @@ class ilAIPicEditorGUI
         $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px; width: 10%;">' . $renderer->render($buttonDownload) . '</div>';
         return '<div style="width: 100%; display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
 
-            '<div id="imageDiv" style="margin-right: 10px; position: relative;">' .
+            '<div id="imageDiv" style="padding: 10px; position: relative; display: flex;">' .
             '<div id="loadingSpinner" style="display: none; position: absolute; 
                                     background-color: white;
                                     box-shadow: 0 0 5px 2px #d1d1d1;
                                     top: 50%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);">' .
-            '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/loading.gif" alt="loading"/>'
+            '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/loading.gif" alt="loading""/>'
             . '</div>' .
             $renderer->render($image) .
             '</div>' .
@@ -259,7 +259,6 @@ class ilAIPicEditorGUI
         http_response_code($httpCode);
 
         $rawPrompt = $_POST["prompt"] ?? "";
-        $style = $_POST["styles"] ?? "realistic";
         $success = $this->AIPicProvider->sendPrompt($rawPrompt);
 
         if ($success) {

@@ -10,23 +10,46 @@
 }
 
 .left {
-    justify-content: start;
+    justify-content: flex-start;
+    margin-right: auto;
 }
 
 .right {
-    justify-content: end;
+    justify-content: flex-end;
+    margin-left: auto;
 }
+
 
 body {
     margin: 0;
 }
 
 .aipic_container {
-    width:100%;
-    margin-top:    3px;
+    width: 100%;
+    margin-top: 3px;
     margin-bottom: 3px;
 }
 
 .aipic_object {
     display: flex;
+}
+
+.aipic-small {
+    width: 300px;
+    height: auto;
+}
+
+.aipic-medium {
+    width: 500px;
+    height: auto;
+}
+
+.aipic-large {
+    width: 800px;
+    height: auto;
+}
+
+.aipic-default-size {
+    width: auto;
+    height: auto;
 }

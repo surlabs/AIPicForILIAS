@@ -63,7 +63,8 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
-            $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/AIPic_sheet.css");
+            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+            $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
             $this->tpl->setContent($this->renderer->render($form));
         }
     }
@@ -152,7 +153,8 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
-            $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/AIPic_sheet.css");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+            $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
             $this->tpl->setContent($res);
         }
@@ -179,11 +181,10 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
-        $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/AIPic_sheet.css");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+        $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
         $this->tpl->setContent($res);
-
-        //$this->tpl->setContent($this->renderer->render($form));
     }
 
     /**
