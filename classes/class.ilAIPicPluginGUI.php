@@ -18,9 +18,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     private ilCtrlInterface $ctrl;
     private ilGlobalTemplateInterface $tpl;
     private UploadServiceAIPicGUI $uploader;
-
     private ilAIPicEditorGUI $editorGUI;
-
     protected static int $id_counter = 0;
 
     public function __construct()
@@ -38,6 +36,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     public function update(): void
     {
         global $tpl, $DIC, $ilCtrl;
+
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptForm();
         $form = $form->withRequest($DIC->http()->request());
@@ -62,13 +61,13 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         } else {
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
+            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
             $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
             $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
             $this->tpl->setContent($this->renderer->render($form));
         }
     }
-
 
     // PageComponent methods
 
@@ -111,6 +110,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     public function insert(): void
     {
         global $tpl, $DIC, $ilCtrl;
+
         $DIC->logger()->root()->info("FORM LOADED");
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptForm();
@@ -139,6 +139,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
             }
 
             $this->returnToParent();
+
         } else {
             // Check if we can download the image
             $this->editorGUI->manageDownloadImage();
@@ -148,12 +149,13 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
 
             $res = $this->editorGUI->renderForm($form) .
                 $image;
-            ;
 
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
             $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+
             $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
             $this->tpl->setContent($res);
@@ -174,14 +176,14 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $file_name = $irss->consume()->src(new ResourceIdentification($this->getProperties()["imageId"]))->getSrc();
         $image = $this->editorGUI->generateImage($file_name ?? null);
 
-        $res = $this->renderer->render($form) .
-            $image
-        ;
+        $res = $this->renderer->render($form) . $image;
 
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
         $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+
         $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
         $this->tpl->setContent($res);
@@ -201,6 +203,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     public function getElementHTML(string $a_mode, array $a_properties, string $plugin_version): string
     {
         global $DIC;
+
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
 
         $old_path = ILIAS_WEB_DIR . '/' . CLIENT_ID . "/AIPic/" . $a_properties["imageId"];
@@ -214,12 +217,12 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         }
         $a_properties["fileName"] = $file_name;
 
-        $tpl = new ilTemplate("aipic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
+        $tpl = new ilTemplate("aIPic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
 
         $tpl->setVariable("ID", date_create()->format('Y-m-d_H-i-s'));
         $tpl->setVariable("SCALE_WRAPPER_WIDTH", $a_properties["widthInput"]);
 
-        $raw_alignment = $a_properties["aligments"] ?? "left";
+        $raw_alignment = $a_properties["aligments"] ?? "center";
         $alignment = empty($raw_alignment) ? "left" : $raw_alignment;
         $tpl->setVariable("ALIGNMENT", $alignment);
 
@@ -228,7 +231,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $tpl->setVariable("IMAGE_URL", $a_properties["fileName"]);
 
         $tpl->setVariable("PROPERTIES", json_encode($a_properties));
-
 
         return $tpl->get();
     }

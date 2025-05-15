@@ -8,22 +8,14 @@ function changePosition() {
 
 function changeSize() {
     const value = parseInt($('input[name="AIPicForm/input_6/input_11"]').val(), 10);
-
     const img = $('#imageDiv').children('img');
+
     img.removeClass('aipic-small aipic-medium aipic-large aipic-default-size');
 
-    if (isNaN(value)) {
-        img.addClass('aipic-default-size');
+    if (isNaN(value) || value <= 0) {
+        img.css('width',  + '1%');
     } else {
-        if (value <= 300) {
-            img.addClass('aipic-small');
-        } else if (value > 300 && value <= 500) {
-            img.addClass('aipic-medium');
-        } else if (value > 500) {
-            img.addClass('aipic-large');
-        } else {
-            img.addClass('aipic-default-size');
-        }
+        img.css('width', value + '%');
     }
 }
 
@@ -31,6 +23,6 @@ document.addEventListener("DOMContentLoaded", function() {
     changePosition();
     changeSize();
 
-    $('select[name="AIPicForm/input_6/input_10"]').on("change", changePosition);
+    $('select[name="AIPicForm/input_6/input_10"]').on("input", changePosition);
     $('input[name="AIPicForm/input_6/input_11"]').on("input", changeSize);
 });

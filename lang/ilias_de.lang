@@ -46,14 +46,12 @@ news_content#:#Inhalt (en)
 xaip_copy#:#AIPic kopieren
 offline#:#Offline
 status#:#Status
-
 prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
 prompt_selector#:#Geben Sie eine Aufforderung ein
 prompt#:#Prompt
 xaip_prompt#:#Prompt
 image_generated#:#Bild generiert
 generate_image#:#Bild generieren
-
 select_aligment#:#Ausrichtung auswählen
 select_aligment_left#:#Links
 select_aligment_center#:#Zentriert
@@ -61,22 +59,21 @@ select_aligment_right#:#Rechts
 style_realistic#:#Realistisch
 style_artistic#:#Künstlerisch
 style_minimal#:#Minimalistisch
+style_anime#:#Anime
+style_cartoon#:#Cartoon
+style_vintage#:#Vintage
 select_style#:#Stil auswählen
-select_style_image_position#:#Bildposition auswählen
+select_style_image#:#Bildstil auswählen
 select_aligment_image_position#:#Bildposition auswählen
 button_download#:#Herunterladen
-
 height#:#Höhe
 width#:#Breite
 height_px#:#Höhe (px)
-width_px#:#Breite (px)
-
+width_px#:#Wählen Sie die Größe des Bildes in Pixeln
 url_restriction#:#Muss eine URL sein
-
 header_request#:#Anforderungskopf
 body_request#:#Anforderungskörper
 response#:#Antwort
-
 api_url#:#API URL
 api_url_description#:#API URL zum Generieren von Bildern.
 authentication_key#:#Authentifizierungsschlüsselbeschriftung
@@ -99,11 +96,10 @@ response_body_subkey_description#:#Unterschlüssel zum Angeben der Bilddaten im 
 configuration#:#Konfiguration
 config_saved#:#Konfiguration erfolgreich gespeichert
 no_images_found#:#Keine Bilder gefunden
-
 cmd_insert#:#AIPic einfügen
 component_title#:#Titel
 component_aigenerator_file#:#AIPic-Datei
-component_width#:#Breite
+component_width#:#Größe
 component_height#:#Höhe
 component_enableShiftDragZoom#:#Verschieben und Zoomen aktivieren
 component_showResetIcon#:#Reset-Icon anzeigen

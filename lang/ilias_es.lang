@@ -1,0 +1,110 @@
+obj_xaip#:#AIPic
+objs_xaip#:#AIPics
+obj_xaip_duplicate#:#Copia
+objs_xaip_duplicate#:#Copiar AIPics
+obj_xaip_select#:#Seleccionar AIPic
+xaip_add#:#Añadir AIPic
+xaip_new#:#Añadir Nuevo AIPic
+xaip_read#:#Acceso de lectura a AIPic
+xaip_write#:#Editar AIPic
+xaip_delete#:#Eliminar AIPic
+xaip_visible#:#AIPic es visible
+xaip_edit_permission#:#Cambiar configuración de permisos
+crs_create_xaip#:#Crear AIPic
+grp_create_xaip#:#Crear AIPic
+fold_create_xaip#:#Crear AIPic
+root_create_xaip#:#Crear AIPic
+cat_create_xaip#:#Crear AIPic
+title#:#Título
+description#:#Descripción
+online#:#En línea
+save#:#Guardar
+update#:#Actualizar
+properties#:#Propiedades
+content#:#Contenido
+copy#:#Copiar
+edit#:#Editar
+export#:#Exportar
+set_not_attempted#:#Establecer Estado de LP como no intentado
+set_in_progress#:#Establecer Estado de LP como en curso
+set_passed#:#Establecer Estado de LP como no completado
+set_failed#:#Establecer Estado de LP como no fallido
+set_completed#:#Establecer Estado de LP como completado
+lp_status_0#:#No Intentado
+lp_status_1#:#En Curso
+lp_status_2#:#Completado
+lp_status_3#:#Fallido
+lp_status_#:#Sin estado aún.
+lp_status_info#:#Atención: Establecer el Estado de LP cambiará el estado de LP del usuario actualmente conectado al estado elegido. ¡EL ESTADO DE CUALQUIER OTRO USUARIO SE ESTABLECERÁ COMO NO INTENTADO! Encontrará este objeto de repositorio buscando por su título, su descripción o la expresión "Repoplugin".
+offline:#:Fuera de línea
+important#:#Importante
+online_status#:#Estado en línea
+lp_status#:#Progreso de Aprendizaje
+update_successful#:#Actualización Exitosa
+news_title#:#Título (en)
+news_content#:#Contenido (en)
+xaip_copy#:#Copiar AIPic
+offline#:#Fuera de línea
+status#:#Estado
+prompt_image_input#:#Escribe un prompt para la imagen
+prompt_selector#:#Introduce un prompt
+prompt#:#Prompt
+image_generated#:#Imagen Generada
+xaip_prompt#:#Prompt
+generate_image#:#Generar Imagen
+select_aligment#:#Seleccionar alineación
+select_aligment_left#:#Izquierda
+select_aligment_center#:#Centro
+select_aligment_right#:#Derecha
+style_realistic#:#Realista
+style_artistic#:#Artístico
+style_minimal#:#Minimalista
+style_anime#:#Anime
+style_cartoon#:#Cartoon
+style_vintage#:#Vintage
+select_style#:#Seleccionar estilo
+select_style_image#:#Seleccionar estilo de imagen
+select_aligment_image_position#:#Posición de la imagen
+button_download#:#Descargar
+height#:#Altura
+width#:#Tamaño
+height_px#:#Altura (px)
+width_px#:#Selecciona el tamaño de la imagen en píxeles
+url_restriction#:#Debe ser una URL
+header_request#:#Encabezado de la solicitud
+body_request#:#Cuerpo de la solicitud
+response#:#Respuesta
+api_url#:#URL de la API
+api_url_description#:#URL de la API para generar imágenes.
+authentication_key#:#Etiqueta de la clave de autenticación
+authentication_key_description#:#Etiqueta de autenticación introducida en la solicitud para incluir el token.
+authentication_value#:#Valor de autenticación
+authentication_value_description#:#Valor de autenticación, por ejemplo: Bearer XXXX...
+header_options#:#Opciones de encabezado adicionales
+header_options_description#:#Este campo es opcional. Puedes añadir encabezados adicionales a la solicitud, como Content-Type. Introduce todas las opciones separadas por comas, con pares clave-valor formateados como clave:valor.
+request_body_prompt#:#Clave del prompt en el cuerpo de la solicitud
+request_model#:#Modelo de solicitud
+request_model_description#:#Especifica el modelo que se usará para generar la imagen.
+request_body_prompt_context#:#Contexto del prompt
+request_body_prompt_context_description#:#Descripción del contexto del prompt
+request_body_prompt_description#:#Clave para especificar el prompt en el cuerpo de la solicitud.
+request_body_options#:#Opciones de cuerpo adicionales
+request_body_options_description#:#Este campo es opcional. Puedes añadir parámetros de cuerpo adicionales a la solicitud, como el modelo. Introduce todas las opciones separadas por comas, con pares clave-valor formateados como clave:valor.
+response_body_key#:#Clave del cuerpo de la respuesta
+response_body_key_description#:#Clave para especificar los datos de la imagen en el cuerpo de la respuesta. Por ejemplo, si los datos aparecen como datos => imagen.jpg, la clave sería datos.
+response_body_subkey#:#Subclave del cuerpo de la respuesta
+response_body_subkey_description#:#Subclave para especificar los datos de la imagen en el cuerpo de la respuesta. Por ejemplo, si los datos aparecen como datos => url => imagen.jpg, la subclave sería url.
+configuration#:#Configuración
+config_saved#:#Configuración guardada exitosamente
+no_images_found#:#No se encontraron imágenes
+cmd_insert#:#Insertar AIPic
+component_title#:#Título
+component_aigenerator_file#:#Archivo AIgenerator
+component_width#:#Ancho
+component_height#:#Alto
+component_enableShiftDragZoom#:#Habilitar Zoom con Shift+Arrastrar
+component_showResetIcon#:#Mostrar Icono de Reinicio
+component_aligment#:#Alineación
+component_left#:#Izquierda
+component_center#:#Centro
+component_right#:#Derecha

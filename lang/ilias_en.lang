@@ -46,14 +46,12 @@ news_content#:#Content (en)
 xaip_copy#:#Copy AIPic
 offline#:#Offline
 status#:#Status
-
 prompt_image_input#:#Write a prompt for the image
 prompt_selector#:#Enter a prompt
 prompt#:#Prompt
 image_generated#:#Image Generated
 xaip_prompt#:#Prompt
 generate_image#:#Generate Image
-
 select_aligment#:#Select alignment
 select_aligment_left#:#Left
 select_aligment_center#:#Center
@@ -61,22 +59,21 @@ select_aligment_right#:#Right
 style_realistic#:#Realistic
 style_artistic#:#Artistic
 style_minimal#:#Minimalistic
+style_anime#:#Anime
+style_cartoon#:#Cartoon
+style_vintage#:#Vintage
 select_style#:#Select style
-select_style_image_position#:#Image position
+select_style_image#:#Select image style
 select_aligment_image_position#:#Image position
 button_download#:#Download
-
 height#:#Height
-width#:#Width
+width#:#Size
 height_px#:#Height (px)
-width_px#:#Width (px)
-
+width_px#:#Select the size of the image in pixels
 url_restriction#:#Must be an URL
-
 header_request#:#Request's header
 body_request#:#Request's body
 response#:#Response
-
 api_url#:#API URL
 api_url_description#:#API URL for generate images.
 authentication_key#:#Authentication key label
@@ -100,7 +97,6 @@ response_body_subkey_description#:#Subkey for specifying the image data in the r
 configuration#:#Configuration
 config_saved#:#Configuration saved successfully
 no_images_found#:#No images found
-
 cmd_insert#:#Insert AIPic
 component_title#:#Title
 component_aigenerator_file#:#AIgenerator File
