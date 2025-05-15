@@ -13,16 +13,15 @@ use platform\AIPicConfig;
  */
 class ilAIPicConfigGUI extends ilPluginConfigGUI
 {
-
     private Factory $ui;
     private Renderer $renderer;
     private \ILIAS\Refinery\Factory $refinery;
-
     private ilGlobalTemplateInterface|ilGlobalTemplate $tpl;
 
     public function __construct()
     {
         global $DIC, $tpl;
+
         $this->ui = $DIC->ui()->factory();
         $this->renderer = $DIC->ui()->renderer();
         $this->refinery = $DIC->refinery();
@@ -37,6 +36,7 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
     public function generateConfigForm(AIPicConfig $currentConfig): Standard
     {
         global $DIC;
+
         $fieldsHeader = [];
         $fieldRequestsBody = [];
         $fieldResponseBody = [];
@@ -49,7 +49,6 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
         $autenticationKey = $this->ui->input()->field()->text($this->plugin_object->txt("authentication_key"), $this->plugin_object->txt("authentication_key_description"))->withValue($currentConfig->getAutheticationKeyLabel() ?? "");
         $autenticationValue = $this->ui->input()->field()->text($this->plugin_object->txt("authentication_value"), $this->plugin_object->txt("authentication_value_description"))->withValue($currentConfig->getAutheticationValue() ?? "");
 
-        // #TODO Add option to add more headers options
         $headerOptions = $this->ui->input()->field()->text($this->plugin_object->txt("header_options"), $this->plugin_object->txt("header_options_description"))->withValue($currentConfig->getAdditionalHeaderOptions() ?? "");
 
         $fieldsHeader["urlInput"] = $urlInput;
@@ -85,9 +84,8 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
             'saveConfig',
             'config'
         );
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicConfigGUI', "saveConfig");
 
-        // Form building
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicConfigGUI', "saveConfig");
         $form = $this->ui->input()->container()->form()->standard($form_action, [$sectionHeader, $sectionRequestBody, $sectionResponseBody]);
 
         return $form;
@@ -104,10 +102,10 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
     public function configure(): void
     {
         global $DIC;
+
         $currentConfig = new AIPicConfig();
         $currentConfig->loadFromDB();
         $form = $this->generateConfigForm($currentConfig);
-
         $this->tpl->setContent($this->renderer->render($form));
 
     }
@@ -118,11 +116,13 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
     public function saveConfig(): void
     {
         global $DIC;
+
         $currentConfig = new AIPicConfig();
         $currentConfig->loadFromDB();
         $form = $this->generateConfigForm($currentConfig);
         $request = $DIC->http()->request();
         $message = "";
+
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $form = $form->withRequest($request);
             $currentConfig = $this->createConfigFromForm($form, $currentConfig);
@@ -135,6 +135,7 @@ class ilAIPicConfigGUI extends ilPluginConfigGUI
     private function createConfigFromForm(Standard $form, AIPicConfig $config): AIPicConfig
     {
         $data = $form->getData();
+
         if (isset($data)) {
             $config->setApiUrl(trim($data[0]['urlInput']));
             $config->setAutheticationKeyLabel(trim($data[0]['autenticationKey']));

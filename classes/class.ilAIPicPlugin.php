@@ -21,9 +21,7 @@ include_once("./Services/COPage/classes/class.ilPageComponentPlugin.php");
 class ilAIPicPlugin extends ilPageComponentPlugin
 {
     public const ID = "xaip";
-
     private static $instance;
-
     private UploadServiceAIPicGUI $uploader;
 
     public static function getInstance()
@@ -32,11 +30,8 @@ class ilAIPicPlugin extends ilPageComponentPlugin
             global $DIC;
 
             $component_repository = $DIC["component.repository"];
-
             $info = $component_repository->getPluginByName("AIPic");
-
             $component_factory = $DIC["component.factory"];
-
             $plugin_obj = $component_factory->getPlugin($info->getId());
 
             self::$instance = $plugin_obj;

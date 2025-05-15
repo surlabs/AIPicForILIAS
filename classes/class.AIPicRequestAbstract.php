@@ -2,7 +2,6 @@
 abstract class AIPicRequestAbstract implements AIPicRequestInterface
 {
     private CurlHandle $ch;
-
     protected array $header = [];
     protected array $body = [];
     protected string $promptContext = "";

@@ -10,12 +10,12 @@ class AIPicRequestImpl extends AIPicRequestAbstract {
     private ?string $additionalRequestBodyOptions;
     private ?string $modelValue;
 
-
     public function __construct() {
         parent::__construct();
     }
 
     public static function from(AIPicConfig $config): AIPicRequestImpl {
+
         $generatorRequest = new AIPicRequestImpl();
         $generatorRequest->withUrl($config->getApiUrl());
         $generatorRequest->withPromptContext($config->getPromptContext());
@@ -37,7 +37,6 @@ class AIPicRequestImpl extends AIPicRequestAbstract {
         }
 
         $generatorRequest->withBody($initialBody);
-
         $generatorRequest->generateHeader();
 
         return $generatorRequest;
@@ -64,6 +63,7 @@ class AIPicRequestImpl extends AIPicRequestAbstract {
     }
 
     protected static function parseBodyOptionsStringToArray(string $optionsString): array {
+
         $optionsArray = [];
 
         if (empty(trim($optionsString))) {
@@ -81,8 +81,8 @@ class AIPicRequestImpl extends AIPicRequestAbstract {
         return $optionsArray;
     }
 
-    // #TODO Check config
     public function generateHeader(): array {
+
         $headerOptions = [];
         if($this->autheticationKeyLabel && $this->autheticationValue) {
             $headerOptions[] = $this->autheticationKeyLabel . ": " . $this->autheticationValue;

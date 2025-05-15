@@ -9,11 +9,8 @@ class ilAIPicEditorGUI
 {
 
     protected ilTemplate $template;
-
     private ilPageComponentPlugin $plugin;
-
     private AIPicRequestInterface $AIPicProvider;
-
     private UploadServiceAIPicGUI $uploader;
 
     private string $placeHolderUrl = "./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/placeholder.png";
@@ -29,6 +26,7 @@ class ilAIPicEditorGUI
     public function getEditorElements(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id): array
     {
         global $DIC;
+
         $lng = $DIC->language();
 
         return [
@@ -48,13 +46,12 @@ class ilAIPicEditorGUI
         $form = $this->getPromptForm();
         $form = $form->withRequest($request);
         $result = $form->getData();
-
-
     }
 
     public function getEditComponentForm(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id, string $pcid): string
     {
         global $DIC;
+
         $ui = $DIC->ui()->factory();
         $rederer = $DIC->ui()->renderer();
 
@@ -87,15 +84,18 @@ class ilAIPicEditorGUI
         $styles = array(
             "realistic" => $this->plugin->txt("style_realistic"),
             "artistic" => $this->plugin->txt("style_artistic"),
-            "minimal" => $this->plugin->txt("style_minimal")
+            "minimal" => $this->plugin->txt("style_minimal"),
+            "anime" => $this->plugin->txt("style_anime"),
+            "vintage" => $this->plugin->txt("style_vintage"),
+            "cartoon" => $this->plugin->txt("style_cartoon"),
         );
 
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue("center")->withRequired(true);
-        $styles_select_input = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles, $this->plugin->txt("select_style_image_position"))->withRequired(false);
+        $styles_select_input = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles, $this->plugin->txt("select_style_image"))->withRequired(false);
 
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true);
 
-        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"));
+        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"))->withRequired(true);
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass(
@@ -118,7 +118,6 @@ class ilAIPicEditorGUI
         $lng = $DIC->language();
 
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"))->withValue($properties["prompt"] ?? "");
-
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
 
         $aligments = array(
@@ -130,14 +129,15 @@ class ilAIPicEditorGUI
         $styles_options = array(
             "realistic" => $this->plugin->txt("style_realistic"),
             "artistic" => $this->plugin->txt("style_artistic"),
-            "minimal" => $this->plugin->txt("style_minimal")
+            "minimal" => $this->plugin->txt("style_minimal"),
+            "anime" => $this->plugin->txt("style_anime"),
+            "vintage" => $this->plugin->txt("style_vintage"),
+            "cartoon" => $this->plugin->txt("style_cartoon"),
         );
 
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue($properties["aligments"] ?? "center")->withRequired(true);
         $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image_position"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
-        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"] ?? 100);
-
-
+        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"]);
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
         $DIC->ctrl()->setParameterByClass(
             'ilAIPicPluginGUI',
@@ -154,6 +154,7 @@ class ilAIPicEditorGUI
     public function renderForm(Standard $form): string
     {
         global $DIC;
+
 
         $refinery = $DIC->refinery();
         $renderer = $DIC->ui()->renderer();
@@ -213,8 +214,9 @@ class ilAIPicEditorGUI
      */
     public function generateImage(?string $url = null): string
     {
-        $url = $url ?? $this->placeHolderUrl;
         global $DIC, $ilCtrl;
+
+        $url = $url ?? $this->placeHolderUrl;
         $ui = $DIC->ui()->factory();
         $renderer = $DIC->ui()->renderer();
         $image = $ui->image()->responsive($url, "Generated_image");
@@ -234,7 +236,7 @@ class ilAIPicEditorGUI
 
 
         $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px; width: 10%;">' . $renderer->render($buttonDownload) . '</div>';
-        return '<div style="width: 100%; display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
+        return '<div style="display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
 
             '<div id="imageDiv" style="padding: 10px; position: relative; display: flex;">' .
             '<div id="loadingSpinner" style="display: none; position: absolute; 
