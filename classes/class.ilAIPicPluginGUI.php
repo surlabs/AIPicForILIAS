@@ -218,6 +218,7 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $a_properties["fileName"] = $file_name;
 
         $tpl = new ilTemplate("aIPic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
+        $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
         $tpl->setVariable("ID", date_create()->format('Y-m-d_H-i-s'));
         $tpl->setVariable("SCALE_WRAPPER_WIDTH", $a_properties["widthInput"]);
@@ -229,7 +230,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $tpl->setVariable("TEMPLATES_DIR", "Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates");
         $tpl->setVariable("PLUGIN_DIR", "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
         $tpl->setVariable("IMAGE_URL", $a_properties["fileName"]);
-
         $tpl->setVariable("PROPERTIES", json_encode($a_properties));
 
         return $tpl->get();
