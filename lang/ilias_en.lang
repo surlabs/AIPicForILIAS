@@ -49,6 +49,7 @@ status#:#Status
 prompt_image_input#:#Write a prompt for the image
 prompt_selector#:#Enter a prompt
 prompt#:#Prompt
+prompt_description#:#Enter the text to be used for creating the image
 image_generated#:#Image Generated
 xaip_prompt#:#Prompt
 generate_image#:#Generate Image
@@ -69,7 +70,7 @@ button_download#:#Download
 height#:#Height
 width#:#Size
 height_px#:#Height (px)
-width_px#:#Select the size of the image in pixels
+width_px#:#Select the size of the image by dragging the slider or entering a value in the input field
 url_restriction#:#Must be an URL
 header_request#:#Request's header
 body_request#:#Request's body

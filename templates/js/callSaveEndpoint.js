@@ -13,7 +13,6 @@ function callSaveEndpoint(url) {
             console.log("urlDownload:", images[i].src)
         }
     }
-
     fetch(url, {
         method: 'GET',
     })

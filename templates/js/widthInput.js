@@ -49,6 +49,7 @@ $(document).ready(function () {
             #${slider.id} {
                 -webkit-appearance: none;
                 background: transparent;
+                margin-bottom: 15px;
             }
             /* Track */
             #${slider.id}::-webkit-slider-runnable-track {

@@ -31,7 +31,7 @@ class ilAIPicEditorGUI
 
         return [
             "icon" => $ui_wrapper->getRenderedIcon("xaimg"),
-            "title" => $lng->txt("image_generator") // Esto ayuda a identificar el componente
+            "title" => $lng->txt("image_generator")
         ];
     }
 
@@ -45,7 +45,6 @@ class ilAIPicEditorGUI
         $request = $DIC->http()->request();
         $form = $this->getPromptForm();
         $form = $form->withRequest($request);
-        $result = $form->getData();
     }
 
     public function getEditComponentForm(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id, string $pcid): string
@@ -71,10 +70,8 @@ class ilAIPicEditorGUI
 
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
-        $renderer = $DIC->ui()->renderer();
 
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
-
         $aligments = array(
             "center" => $this->plugin->txt("select_aligment_center"),
             "left" => $this->plugin->txt("select_aligment_left"),
@@ -95,7 +92,7 @@ class ilAIPicEditorGUI
 
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true);
 
-        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"))->withRequired(true);
+        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withRequired(true);
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass(
@@ -107,17 +104,15 @@ class ilAIPicEditorGUI
         $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "insert");
 
         return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
-
     }
 
     public function getPromptFormWithProperties(array $properties): Standard
     {
         global $DIC;
-
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
-        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"))->withValue($properties["prompt"] ?? "");
+        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withValue($properties["prompt"] ?? "")->withRequired(true);
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
 
         $aligments = array(
@@ -136,7 +131,7 @@ class ilAIPicEditorGUI
         );
 
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue($properties["aligments"] ?? "center")->withRequired(true);
-        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image_position"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
+        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"]);
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
         $DIC->ctrl()->setParameterByClass(
@@ -148,13 +143,11 @@ class ilAIPicEditorGUI
         $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "update");
 
         return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
-
     }
 
     public function renderForm(Standard $form): string
     {
         global $DIC;
-
 
         $refinery = $DIC->refinery();
         $renderer = $DIC->ui()->renderer();
@@ -191,11 +184,11 @@ class ilAIPicEditorGUI
             $imagen = file_get_contents($destiny);
             $query_string = parse_url($destiny, PHP_URL_QUERY);
             parse_str($query_string, $params);
-            $etension = pathinfo($destiny, PATHINFO_EXTENSION);
+            $extension = pathinfo($destiny, PATHINFO_EXTENSION);
 
             $content_type = $params['rsct'] ?? 'image/png';
             $now = date_create()->format('Y-m-d_H-i-s');
-            $fileName = "AIPic$$now.$etension";
+            $fileName = "AIPic$$now.$extension";
 
             header('Content-Description: File Transfer');
             header("Content-Type: $content_type");
@@ -262,12 +255,11 @@ class ilAIPicEditorGUI
 
         $rawPrompt = $_POST["prompt"] ?? "";
         $success = $this->AIPicProvider->sendPrompt($rawPrompt);
-
         if ($success) {
             $res = $this->AIPicProvider->getImagesUrlsArray();
             header('Content-type: application/json');
             if (count($res) !== 0) {
-                echo json_encode(["image" => $res[0]]);
+                echo json_encode(["image" => end($res)]);
                 exit();
             }
         }

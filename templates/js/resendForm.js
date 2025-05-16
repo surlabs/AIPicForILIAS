@@ -1,42 +1,16 @@
+// Manage the disposition of the generate image button
 $("#redirectButton")
     .appendTo($(".ui-input-textarea").parent())
     .width("100%")
     .children()
     .css("margin-bottom", "10px")
     .css("width", "100%");
-$("#imageDiv").css("max-width", "800px").css("max", "100%");
-
-for (
-    let i = 0;
-    i < document.getElementsByClassName("ui-input-file-input-dropzone").length;
-    i++
-) {
-    document.getElementsByClassName("ui-input-file-input-dropzone")[
-        i
-        ].style.display = "none";
-}
 
 const prompt = $(".il-section-input .ui-input-textarea textarea");
 const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
-
 const generateButton = $("#redirectButton button");
 const loadingSpinner = document.getElementById("loadingSpinner");
-
-function isWidthInputEmpty() {
-    let res = true;
-    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val().trim();
-
-    if (inputValue !== "" && !isNaN(inputValue)) {
-        res = false;
-    }
-    return res;
-}
-
-function setDisableSendbuttons(status) {
-    setTimeout(() => {
-        $(".il-standard-form-cmd button").attr("disabled", status);
-    }, 50);
-}
+const sendButton = $('button.btn.btn-default[data-action]');
 
 document.addEventListener("DOMContentLoaded", function () {
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
@@ -51,19 +25,9 @@ document.addEventListener("DOMContentLoaded", function () {
     changePosition();
     changeSize();
     checkChanges();
+
 });
 
-function checkChanges() {
-    const imgDiv = document.getElementById("imageDiv");
-    const img = imgDiv.children[1];
-    const imgEmptyOrDefault =
-        img && (img.src === "" || img.src.includes("placeholder"));
-    const promptEmpty =
-        prompt.val().length === 0 || loadingSpinner.style.display === "block";
-    const anyEmpty = promptEmpty || isWidthInputEmpty() || imgEmptyOrDefault;
-
-    setDisableSendbuttons(anyEmpty);
-}
 
 function resendForm(url, urlBase) {
 
@@ -73,6 +37,7 @@ function resendForm(url, urlBase) {
     // Show the loading spinner
     loadingSpinner.style.display = "block";
     generateButton.attr("disabled", false);
+    sendButton.attr("disabled", true);
 
     $.post(url, {
         prompt: promptValue,
@@ -117,6 +82,7 @@ function resendForm(url, urlBase) {
         .fail(function () {
             loadingSpinner.style.display = "none";
             generateButton.attr("disabled", false);
+            sendButton.attr("disabled", false);
             alert("Error sending data");
         });
 }
@@ -144,4 +110,33 @@ function setPromptStyle(userPrompt, style) {
     }
 
     return `${userPrompt.trim()}, ${styleDesc}`;
+}
+
+function isWidthInputEmpty() {
+    let res = true;
+    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val().trim();
+
+    if (inputValue !== "" && !isNaN(inputValue)) {
+        res = false;
+    }
+    return res;
+}
+
+function setDisableSendbuttons(status) {
+    setTimeout(() => {
+        generateButton.attr("disabled", status);
+        sendButton.attr("disabled", status);
+    }, 50);
+}
+
+function checkChanges() {
+    const imgDiv = document.getElementById("imageDiv");
+    const img = imgDiv.children[1];
+    const imgEmptyOrDefault =
+        img && (img.src === "" || img.src.includes("placeholder"));
+    const promptEmpty =
+        prompt.val().length === 0 || loadingSpinner.style.display === "block";
+    const anyEmpty = promptEmpty || isWidthInputEmpty() || imgEmptyOrDefault;
+
+    setDisableSendbuttons(anyEmpty);
 }

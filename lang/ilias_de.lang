@@ -49,6 +49,7 @@ status#:#Status
 prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
 prompt_selector#:#Geben Sie eine Aufforderung ein
 prompt#:#Prompt
+prompt_description#:#Geben Sie den Text ein, der für die Erstellung des Bildes verwendet werden soll
 xaip_prompt#:#Prompt
 image_generated#:#Bild generiert
 generate_image#:#Bild generieren
@@ -69,7 +70,7 @@ button_download#:#Herunterladen
 height#:#Höhe
 width#:#Breite
 height_px#:#Höhe (px)
-width_px#:#Wählen Sie die Größe des Bildes in Pixeln
+width_px#:#Wählen Sie die Größe des Bildes durch Ziehen des Schiebereglers oder durch Eingabe eines Wertes in das Eingabefeld
 url_restriction#:#Muss eine URL sein
 header_request#:#Anforderungskopf
 body_request#:#Anforderungskörper
