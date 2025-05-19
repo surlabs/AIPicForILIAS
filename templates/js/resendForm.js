@@ -10,7 +10,10 @@ const prompt = $(".il-section-input .ui-input-textarea textarea");
 const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
 const generateButton = $("#redirectButton button");
 const loadingSpinner = document.getElementById("loadingSpinner");
-const sendButton = $('button.btn.btn-default[data-action]');
+const sendButton = $('.il-standard-form-cmd button');
+
+
+console.log(sendButton)
 
 document.addEventListener("DOMContentLoaded", function () {
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
@@ -25,7 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
     changePosition();
     changeSize();
     checkChanges();
-
 });
 
 
@@ -36,8 +38,7 @@ function resendForm(url, urlBase) {
 
     // Show the loading spinner
     loadingSpinner.style.display = "block";
-    generateButton.attr("disabled", false);
-    sendButton.attr("disabled", true);
+    setDisableSendbuttons(true, true);
 
     $.post(url, {
         prompt: promptValue,
@@ -65,6 +66,10 @@ function resendForm(url, urlBase) {
                         type: blob.type,
                     });
 
+                    loadingSpinner.style.display = "none";
+                    downloadButton.style.display = "block";
+                    checkChanges();
+
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
@@ -81,8 +86,7 @@ function resendForm(url, urlBase) {
         })
         .fail(function () {
             loadingSpinner.style.display = "none";
-            generateButton.attr("disabled", false);
-            sendButton.attr("disabled", false);
+            setDisableSendbuttons(true, true);
             alert("Error sending data");
         });
 }
@@ -122,21 +126,33 @@ function isWidthInputEmpty() {
     return res;
 }
 
-function setDisableSendbuttons(status) {
+function setDisableSendbuttons(disableGen, disableSend) {
     setTimeout(() => {
-        generateButton.attr("disabled", status);
-        sendButton.attr("disabled", status);
+        if (disableGen) {
+            console.log("disableGen");
+            generateButton.prop("disabled", true);
+        } else {
+            generateButton.prop("disabled", false);
+        }
+
+        if (disableSend) {
+            console.log("disableSend");
+
+            sendButton.attr("disabled", true);
+        } else {
+            sendButton.prop("disabled", false);
+        }
     }, 50);
 }
+
 
 function checkChanges() {
     const imgDiv = document.getElementById("imageDiv");
     const img = imgDiv.children[1];
-    const imgEmptyOrDefault =
-        img && (img.src === "" || img.src.includes("placeholder"));
-    const promptEmpty =
-        prompt.val().length === 0 || loadingSpinner.style.display === "block";
-    const anyEmpty = promptEmpty || isWidthInputEmpty() || imgEmptyOrDefault;
+    const imgEmptyOrDefault = !img || img.src === "" || img.src.includes("placeholder");
+    const promptEmpty = prompt.val().length === 0 || loadingSpinner.style.display === "block";
+    const anyEmpty = promptEmpty || isWidthInputEmpty();
 
-    setDisableSendbuttons(anyEmpty);
+    setDisableSendbuttons(anyEmpty, anyEmpty);
+
 }
