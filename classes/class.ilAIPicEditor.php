@@ -90,7 +90,7 @@ class ilAIPicEditorGUI
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue("center")->withRequired(true);
         $styles_select_input = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles, $this->plugin->txt("select_style_image"))->withRequired(false);
 
-        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true);
+        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue(50);
 
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withRequired(true);
         $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));

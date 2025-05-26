@@ -26,7 +26,6 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
 {
     private ResourceStorage $storage;
     private StorageStakeHolderAIPic $stakeholder;
-
     private ilLogger $logger;
 
     public function __construct()

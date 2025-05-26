@@ -9,12 +9,10 @@ class AIPicDatabase extends BasicDb implements BasicDbChildInterface {
     const ALLOWED_TABLES = [
         'aip_config'
     ];
-
     public function __construct() {
 
         parent::__construct(self::ALLOWED_TABLES);
     }
-
 
     public function throwException(string $message): void {
         throw new AIPicException($message);

@@ -18,11 +18,8 @@ class AIPicConfig {
     private ?string $additionalRequestBodyOptions;
     private string $responseKey;
     private ?string $responseSubkey;
-
     private DateTime $createdAt;
     private ?DateTime $updatedAt;
-
-
 
     public function __construct(?int $id = null) {
         global $DIC;
@@ -235,6 +232,4 @@ class AIPicConfig {
     {
         $this->updatedAt = $updatedAt;
     }
-
-
 }
