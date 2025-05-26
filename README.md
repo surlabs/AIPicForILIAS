@@ -1,8 +1,7 @@
 <div style="text-align: center; transform: scale(.5);">
   <picture>
-    <!-- TODO: Replace with AIPic specific banner images -->
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/surlabs/AIPic/blob/main/templates/images/AIPicBanner.png?raw=true" />
-    <img alt="AIPic Plugin Banner (Placeholder - Update Me!)" src="https://github.com/surlabs/PollsPageComponent/blob/e7ce55c5cc8edda3232027e05c4db5058f099504/templates/images/GitBannerPolls.png" />
+    <img alt="AIPic Plugin Banner" src="https://github.com/abrahammordev/AIPic/blob/8469a03b3e0d0a750f81f7c7f634fad48c5b33de/templates/images/AIPicBanner.png" />
   </picture>
 </div>
 
