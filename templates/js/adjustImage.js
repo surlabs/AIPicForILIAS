@@ -5,7 +5,6 @@ function changePosition() {
     imgDiv.removeClass("left center right");
     imgDiv.addClass(value);
 }
-
 function changeSize() {
     const value = parseInt($('input[name="AIPicForm/input_6/input_11"]').val(), 10);
     const img = $('#imageDiv').children('img');

@@ -30,9 +30,11 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $this->renderer = $DIC->ui()->renderer();
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
-
     }
 
+    /**
+     * @throws ilCtrlException
+     */
     public function update(): void
     {
         global $tpl, $DIC, $ilCtrl;
@@ -41,14 +43,16 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $form = $this->editorGUI->getPromptForm();
         $form = $form->withRequest($DIC->http()->request());
         $result = $form->getData();
+
         if($form->getError() === null) {
-            if(isset($result) && count($result) > 0 && count($result[0]['file']) > 0) {
+            if(isset(end($result)['file']) && count($result) > 0 && count($result[0]['file']) > 0) {
                 if(array_key_exists("imageId", $this->getProperties())) {
                     $this->uploader->removeFromOutside($this->getProperties()["imageId"]);
                 }
                 $result[0]['imageId'] = $result[0]['file'][0];
-                $result["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
-                $result["fileName"] = $result[0]["file"][0];
+                // TODO Check the logic
+                $result[0]["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
+                $result[0]["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
             } else {
 
@@ -59,14 +63,19 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
             $this->updateElement($result[0]);
             $this->returnToParent();
         } else {
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/alignButtons.js");
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
-            $this->tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
-            $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
-            $this->tpl->setContent($this->renderer->render($form));
+            $ilCtrl->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'sendPrompt');
+            $this->editorGUI->manageDownloadImage();
+            $image = $this->editorGUI->generateImage();
+            $res = $this->editorGUI->renderForm($form) . $image;
+
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/alignButtons.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
+            $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+            $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
+            $this->tpl->setContent($res);
         }
     }
 
