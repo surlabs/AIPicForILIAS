@@ -1,6 +1,6 @@
 <div style="text-align: center; transform: scale(.5);">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/surlabs/AIPic/blob/main/templates/images/AIPicBanner.png?raw=true" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/abrahammordev/AIPic/blob/main/templates/images/AIPicBanner.png?raw=true" />
     <img alt="AIPic Plugin Banner" src="https://github.com/abrahammordev/AIPic/blob/8469a03b3e0d0a750f81f7c7f634fad48c5b33de/templates/images/AIPicBanner.png" />
   </picture>
 </div>
