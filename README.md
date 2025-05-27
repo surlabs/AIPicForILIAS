@@ -61,22 +61,33 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
 
 2. **Navigate** to the ILIAS page where you want to insert an AI-generated image.
 
-3. **Enable page editing**, then add the **“AIPic” Page Component** from the available elements.  
+3. **Configure** the plugin by completing the following steps:
+
+    - Add the **Request header**:  
+      <img src="./templates/images/InstalationConfig1.png" width="250">
+
+    - Add the **Request body**:  
+      <img src="./templates/images/InstalationConfig2.png" width="250">
+
+    - Complete the remaining configuration:  
+      <img src="./templates/images/InstalationConfig3.png" width="250">
+
+4. **Enable page editing**, then add the **“AIPic” Page Component** from the available elements.  
    <img src="./templates/images/InstalationPC.png" width="175">
 
-4. The component will first display an **overview** with all available settings and options.  
+5. The component will first display an **overview** with all available settings and options.  
    <img src="./templates/images/InstalationOverView.png" width="300">
 
-5. In the component’s settings, enter a **text prompt** describing the image you want to generate.  
+6. In the component’s settings, enter a **text prompt** describing the image you want to generate.  
    <img src="./templates/images/InstalationPrompt.png" width="400">
 
-6. Adjust the available options, such as **image style, size, or alignment**, to your preference.  
+7. Adjust the available options, such as **image style, size, or alignment**, to your preference.  
    <img src="./templates/images/InstalationStyle.png" width="300">
 
-7. Click the generate button — the plugin will create the image based on your input.  
+8. Click the generate button — the plugin will create the image based on your input.  
    <img src="./templates/images/InstalationResult.png" width="400">
 
-8. Once the image is generated, it will be **automatically displayed** on the page.  
+9. Once the image is generated, it will be **automatically displayed** on the page.  
    <img src="./templates/images/InstalationDashboard.png" width="500">
 
 ## Branching
