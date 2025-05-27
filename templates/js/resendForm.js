@@ -128,7 +128,7 @@ function resendForm(url, urlBase) {
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
                 checkChanges();
-            }, 1000);
+            }, 1500);
 
             if (downloadButton) downloadButton.style.display = "block";
             checkChanges();
@@ -139,7 +139,7 @@ function resendForm(url, urlBase) {
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
                 checkChanges();
-            }, 1000);
+            }, 1500);
             alert("Error sending data to server: " + textStatus);
         });
 }
