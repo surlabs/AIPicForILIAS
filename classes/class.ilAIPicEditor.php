@@ -228,7 +228,7 @@ class ilAIPicEditorGUI
         });
 
 
-        $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px; width: 10%;">' . $renderer->render($buttonDownload) . '</div>';
+        $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px;">' . $renderer->render($buttonDownload) . '</div>';
         return '<div style="display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
 
             '<div id="imageDiv" style="padding: 10px; position: relative; display: flex;">' .
@@ -243,7 +243,7 @@ class ilAIPicEditorGUI
             $renderer->render($image) .
             '</div>' .
             $buttonDownloadHtml .
-            '<div id="redirectButton" style="align-content: center;">' .
+            '<div id="redirectButton" style="margin: 10px auto;">' .
             $renderer->render($buttonGenerateImage) .
             '</div>' .
             '</div>';
