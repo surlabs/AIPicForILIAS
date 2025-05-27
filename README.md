@@ -64,13 +64,13 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
 3. **Configure** the plugin by completing the following steps:
 
     - Add the **Request header**:  
-      <img src="./templates/images/InstalationConfig1.png" width="250">
+      <img src="./templates/images/InstalationConfig1.png" width="300">
 
     - Add the **Request body**:  
-      <img src="./templates/images/InstalationConfig2.png" width="250">
+      <img src="./templates/images/InstalationConfig2.png" width="300">
 
     - Complete the remaining configuration:  
-      <img src="./templates/images/InstalationConfig3.png" width="250">
+      <img src="./templates/images/InstalationConfig3.png" width="300">
 
 4. **Enable page editing**, then add the **“AIPic” Page Component** from the available elements.  
    <img src="./templates/images/InstalationPC.png" width="175">
