@@ -1,133 +1,206 @@
-$("#redirectButton").appendTo($(".ui-input-textarea").parent()).width("100%").children().css("margin-bottom", "10px").css("width", "100%");
-$("#imageDiv").css("max-width", "800px").css("max", "100%");
+// Manage the disposition of the generate image button
+$("#redirectButton")
+    .appendTo($(".ui-input-textarea").parent())
+    .width("100%")
+    .children()
+    .css("margin-bottom", "10px")
+    .css("width", "100%");
 
-$("downloadButton").children().css("width", "10%");
+const prompt = $(".il-section-input .ui-input-textarea textarea");
+const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
+const generateButton = $("#redirectButton button");
+const loadingSpinner = document.getElementById("loadingSpinner");
+const sendButton = $('.il-standard-form-cmd button');
 
-for (let i = 0; i < document.getElementsByClassName("ui-input-file-input-dropzone").length; i++) {
-    document.getElementsByClassName("ui-input-file-input-dropzone")[i].style.display = "none";
-}
+document.addEventListener("DOMContentLoaded", function () {
+    $(".ui-input-file-input-dropzone, .ui-input-file").hide();
 
-const prompt = $('.il-section-input .ui-input-textarea textarea');
-const generateButton = $('#redirectButton button');
-const widthInputs = document.getElementsByName("aimageGeneratorForm/input_5/input_9")
-const loadingSpinner = document.getElementById('loadingSpinner');
-
-function isWidthInputEmpty() {
-    let res = true;
-    for (let i = 0; i < widthInputs.length; i++) {
-        if (widthInputs[i].value && widthInputs[i].value.trim() !== "") {
-            res = false;
-        }
-    }
-    return res;
-}
-
-function setDisableSendbuttons(status) {
-    setTimeout(()=>{
-        $(".il-standard-form-cmd button").attr("disabled", status);
-    }, 50);
-}
-
-function checkChanges() {
-    const imgDiv = document.getElementById('imageDiv');
-    const imgEmptyOrDefault = imgDiv.children[1].src === "" || imgDiv.children[1].src.toLowerCase().includes("placeholder");
-    const promtEmpty = prompt.val().length === 0 || loadingSpinner.style.display === 'block';
-    const anyEmpty = promtEmpty || isWidthInputEmpty() || imgEmptyOrDefault;
-    setDisableSendbuttons(anyEmpty);
-    generateButton.attr("disabled", promtEmpty);
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    prompt.on('input', checkChanges);
-    checkChanges();
-    widthInputs.forEach(input => {
-        input.addEventListener("input", checkChanges);
+    prompt.on("input", checkChanges);
+    $('input[name="AIPicForm/input_6/input_11"]').on("input", () => {
+        checkChanges();
+        changeSize();
     });
-    for (let i = 0; i < document.getElementsByClassName("ui-input-file-input-dropzone").length; i++) {
-        document.getElementsByClassName("ui-input-file-input-dropzone")[i].style.display = "none";
-    }
-    for (let i = 0; i < document.getElementsByClassName("ui-input-file").length; i++) {
-        document.getElementsByClassName("ui-input-file")[i].style.display = "none";
-    }
+    $('select[name="AIPicForm/input_6/input_10"]').on("input", changePosition);
 
-    setDisableSendbuttons(true);
+    $('#imageDiv img[alt="Generated_image"]').css('width', '50%');
+    changePosition();
+    changeSize();
+    checkChanges();
 });
-
-function getFormData(form) {
-    const formData = {};
-    const elements = form.elements;
-
-    for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
-        const name = element.name;
-        const value = element.value;
-
-        if (name) {
-            formData["prompt"] = value;
-        }
-    }
-
-    return formData;
-}
-
-function updateDownloadUrl(newUrl) {
-    $("#downloadButton").attr("data-url", newUrl);
-}
 
 
 function resendForm(url, urlBase) {
 
-    const promptValue = prompt.val();
+    const promptValue = setPromptStyle(prompt.val(), styleSelect.val());
 
-    let fileInput = document.querySelector("input[type='file']");
+    let dzInstance = null;
+    let associatedFileInput = null;
+    const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').eq(1)[0];
 
-    // Show the loading spinner
-    loadingSpinner.style.display = 'block';
+    if (dropzoneVisualElement) {
+        const parentUiInputFile = dropzoneVisualElement.closest('.ui-input-file');
 
-    generateButton.attr("disabled", true);
+        if (Dropzone.instances && Dropzone.instances.length > 0) {
+            dzInstance = Dropzone.instances.find(dz => dz.element === dropzoneVisualElement || (dz.hiddenFileInput && dz.hiddenFileInput.closest('.ui-input-file') === parentUiInputFile));
+        }
+    }
+    if (!associatedFileInput && dropzoneVisualElement) {
+        const parent = dropzoneVisualElement.closest('.ui-input-file');
+        if (parent) associatedFileInput = parent.querySelector('input[type="file"]');
+    }
 
-    $.post(url, {
-        prompt: promptValue
-    })
+    const resetButton = $('.glyphicon.glyphicon-remove')
+
+    if (resetButton) {
+        resetButton.click();
+    }
+    if (associatedFileInput) {
+        associatedFileInput.value = "";
+        associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+
+    loadingSpinner.style.display = "block";
+    setDisableSendbuttons(true, true);
+
+    $.post(url, {prompt: promptValue})
         .done(async function (data) {
-            const downloadButton = document.getElementById('downloadButton');
+            const downloadButton = document.getElementById("downloadButton");
+            const imgDiv = document.getElementById("imageDiv");
 
-            const imgDiv = document.getElementById('imageDiv');
-            if (imgDiv.children[1].src) {
-                try {
-                    const currentUrl = new URL(urlBase, window.location.origin);
-                    currentUrl.searchParams = new URLSearchParams(window.location.search);
+            try {
+                const currentUrl = new URL(urlBase, window.location.origin);
+                currentUrl.searchParams = new URLSearchParams(window.location.search);
+                currentUrl.searchParams.delete("urlDownload");
+                currentUrl.searchParams.set("urlDownload", encodeURI(data.image));
+                currentUrl.searchParams.delete("methodDesired");
+                currentUrl.searchParams.set("methodDesired", "downloadImage");
 
-                    currentUrl.searchParams.delete("urlDownload");
-                    currentUrl.searchParams.set("urlDownload", encodeURI(data.image));
-                    currentUrl.searchParams.delete("methodDesired");
-                    currentUrl.searchParams.set("methodDesired", "downloadImage");
+                const fetchUrl = currentUrl.pathname + "?" + currentUrl.searchParams.toString();
+                const response = await fetch(fetchUrl);
 
-                    currentUrl.search = "?" + currentUrl.searchParams.toString();
+                const blob = await response.blob();
+                const file = new File([blob], "generated_image.png", {type: blob.type || 'image/png'});
 
-                    // Convertir la imagen generada a un Blob y asignarla al input file
-                    const response = await fetch(currentUrl);
-                    const blob = await response.blob();
-                    const file = new File([blob], "generated_image.png", { type: blob.type });
-
+                if (dzInstance) {
+                    dzInstance.addFile(file);
+                    if (dzInstance.files.includes(file) || dzInstance.files.some(f => f.name === file.name && f.size === file.size)) {
+                    } else {
+                        if (associatedFileInput) {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            associatedFileInput.files = dataTransfer.files;
+                            associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
+                        }
+                    }
+                } else if (associatedFileInput) {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
-                    fileInput.files = dataTransfer.files;
-                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-                } catch (error) {
-                    console.error("Error:", error);
+                    associatedFileInput.files = dataTransfer.files;
+                    associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
+                } else if (dropzoneVisualElement && typeof Dropzone !== 'undefined') {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    dropzoneVisualElement.dispatchEvent(new DragEvent('dragenter', {
+                        bubbles: true,
+                        cancelable: true,
+                        dataTransfer
+                    }));
+                    dropzoneVisualElement.dispatchEvent(new DragEvent('dragover', {
+                        bubbles: true,
+                        cancelable: true,
+                        dataTransfer
+                    }));
+                    dropzoneVisualElement.dispatchEvent(new DragEvent('drop', {
+                        bubbles: true,
+                        cancelable: true,
+                        dataTransfer
+                    }));
                 }
+
+            } catch (error) {
+                loadingSpinner.style.display = "none";
+                setDisableSendbuttons(false, false);
             }
 
-            imgDiv.children[1].src = data.image;
-            loadingSpinner.style.display = 'none';
-            downloadButton.style.display = "block";
+            if (imgDiv && imgDiv.children && imgDiv.children.length > 1 && imgDiv.children[1].tagName === 'IMG') {
+                imgDiv.children[1].src = data.image;
+            }
+            setTimeout(() => {
+                loadingSpinner.style.display = "none";
+                checkChanges();
+            }, 1500);
+
+            if (downloadButton) downloadButton.style.display = "block";
             checkChanges();
+
         })
-        .fail(function () {
-            loadingSpinner.style.display = 'none';
-            generateButton.attr("disabled", false);
-            alert("Error sending data");
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            setDisableSendbuttons(false, false);
+            setTimeout(() => {
+                loadingSpinner.style.display = "none";
+                checkChanges();
+            }, 1500);
+            alert("Error sending data to server: " + textStatus);
         });
+}
+
+function setPromptStyle(userPrompt, style) {
+    const styleMap = {
+        minimal:
+            "minimal style, flat shapes, soft gradients, clean composition, limited color palette, focus on negative space, simple design",
+        realistic:
+            "realistic style, photorealistic rendering, high detail, natural lighting, accurate shadows, realistic textures, lifelike atmosphere",
+        artistic:
+            "artistic style, expressive strokes, creative lighting, stylized forms, surreal interpretation, painterly textures, vibrant mood",
+        anime:
+            "anime style, clean lines, cel shading, expressive faces, colorful background, exaggerated proportions, Japanese animation style",
+        vintage:
+            "vintage style, sepia tones, old film grain, retro color grading, nostalgic atmosphere, soft focus, 20th century aesthetic",
+        cartoon:
+            "cartoon style, bold outlines, flat colors, exaggerated features, playful expressions, simplified shapes, vibrant palette, animated look",
+    };
+
+    const styleDesc = styleMap[style] || "";
+
+    if (!styleDesc.trim()) {
+        return userPrompt.trim();
+    }
+
+    return `${userPrompt.trim()}, ${styleDesc}`;
+}
+
+function isWidthInputEmpty() {
+    let res = true;
+    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val().trim();
+
+    if (inputValue !== "" && !isNaN(inputValue)) {
+        res = false;
+    }
+    return res;
+}
+
+function setDisableSendbuttons(disableGen, disableSend) {
+    setTimeout(() => {
+        if (disableGen) {
+            generateButton.prop("disabled", true);
+        } else {
+            generateButton.prop("disabled", false);
+        }
+
+        if (disableSend) {
+            sendButton.attr("disabled", true);
+        } else {
+            sendButton.prop("disabled", false);
+        }
+    }, 50);
+}
+
+function checkChanges() {
+    const imgDiv = document.getElementById("imageDiv");
+    const img = imgDiv.children[1];
+    const imgEmptyOrDefault = !img || img.src === "" || img.src.includes("placeholder");
+    const promptEmpty = prompt.val().length === 0 || loadingSpinner.style.display === "block";
+    const anyEmpty = promptEmpty || isWidthInputEmpty();
+
+    setDisableSendbuttons(anyEmpty, imgEmptyOrDefault);
 }

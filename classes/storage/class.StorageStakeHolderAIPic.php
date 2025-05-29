@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * Disclaimer: This file is part of the AImageGenerator Repository Object plugin for ILIAS.
+ * Disclaimer: This file is part of the AIPic Repository Object plugin for ILIAS.
  */
 
 use ILIAS\ResourceStorage\Stakeholder\AbstractResourceStakeholder;
@@ -11,7 +11,7 @@ use ILIAS\ResourceStorage\Stakeholder\AbstractResourceStakeholder;
  * Class StorageStakeHolderAIGenerator
  * @authors Jesús Copado, Daniel Cazalla, Saúl Díaz, Juan Aguilar <info@surlabs.es>
  */
-class StorageStakeHolderAIGenerator extends AbstractResourceStakeholder
+class StorageStakeHolderAIPic extends AbstractResourceStakeholder
 {
     public function __construct()
     {
@@ -19,7 +19,7 @@ class StorageStakeHolderAIGenerator extends AbstractResourceStakeholder
 
     public function getId(): string
     {
-        return 'aig_file';
+        return 'aip_file';
     }
 
     public function getOwnerOfNewResources(): int

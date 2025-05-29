@@ -1,39 +1,37 @@
 <?php
 
-use ILIAS\COPage\Editor\Components\PageComponentEditor;
+
 use ILIAS\COPage\Editor\Server\UIWrapper;
 use ILIAS\UI\Component\Input\Container\Form\Standard;
 use JetBrains\PhpStorm\NoReturn;
 
-class ilAImageGeneratorEditorGUI implements PageComponentEditor
+class ilAIPicEditorGUI
 {
 
     protected ilTemplate $template;
-
     private ilPageComponentPlugin $plugin;
+    private AIPicRequestInterface $AIPicProvider;
+    private UploadServiceAIPicGUI $uploader;
 
-    private AImageGeneratorRequestInterface $aimageGeneratorProvider;
+    private string $placeHolderUrl = "./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/placeholder.png";
 
-    private UploadServiceAImageGeneratorGUI $uploader;
-
-    private string $placeHolderUrl = "./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/placeholder.png";
-
-    public function __construct(ilPageComponentPlugin $plugin, AImageGeneratorRequestInterface $aimageGeneratorProvider)
+    public function __construct(ilPageComponentPlugin $plugin, AIPicRequestInterface $AIPicProvider)
     {
         $this->plugin = $plugin;
-        $this->aimageGeneratorProvider = $aimageGeneratorProvider;
-        $this->uploader = new UploadServiceAImageGeneratorGUI();
+        $this->AIPicProvider = $AIPicProvider;
+        $this->uploader = new UploadServiceAIPicGUI();
     }
 
 
     public function getEditorElements(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id): array
     {
         global $DIC;
+
         $lng = $DIC->language();
 
         return [
             "icon" => $ui_wrapper->getRenderedIcon("xaimg"),
-            "title" => $lng->txt("image_generator") // Esto ayuda a identificar el componente
+            "title" => $lng->txt("image_generator")
         ];
     }
 
@@ -47,14 +45,12 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         $request = $DIC->http()->request();
         $form = $this->getPromptForm();
         $form = $form->withRequest($request);
-        $result = $form->getData();
-
-
     }
 
     public function getEditComponentForm(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id, string $pcid): string
     {
         global $DIC;
+
         $ui = $DIC->ui()->factory();
         $rederer = $DIC->ui()->renderer();
 
@@ -68,50 +64,55 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         return $res;
     }
 
-    public function getPromptForm(): Standard {
+    public function getPromptForm(): Standard
+    {
         global $DIC;
 
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
-        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"));
-
-
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
-
         $aligments = array(
             "center" => $this->plugin->txt("select_aligment_center"),
             "left" => $this->plugin->txt("select_aligment_left"),
             "right" => $this->plugin->txt("select_aligment_right")
+        );
+
+        $styles = array(
+            "realistic" => $this->plugin->txt("style_realistic"),
+            "artistic" => $this->plugin->txt("style_artistic"),
+            "minimal" => $this->plugin->txt("style_minimal"),
+            "anime" => $this->plugin->txt("style_anime"),
+            "vintage" => $this->plugin->txt("style_vintage"),
+            "cartoon" => $this->plugin->txt("style_cartoon"),
         );
 
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue("center")->withRequired(true);
+        $styles_select_input = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles, $this->plugin->txt("select_style_image"))->withRequired(false);
 
-        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true);
+        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue(50);
 
-        $section1 = $ui->input()->field()->section(["prompt"=>$prompt, "file"=>$file, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
+        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withRequired(true);
+        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass(
-            'ilAImageGeneratorPluginGUI',
+            'ilAIPicPluginGUI',
             'methodDesired',
             'saveImage'
         );
 
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', "insert");
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "insert");
 
-        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("aimageGeneratorForm");
-
+        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
     }
 
-    public function getPromptFormWithProperties(array $properties): Standard {
+    public function getPromptFormWithProperties(array $properties): Standard
+    {
         global $DIC;
-
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
-        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt"))->withValue($properties["prompt"] ?? "");
-
-
+        $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withValue($properties["prompt"] ?? "")->withRequired(true);
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
 
         $aligments = array(
@@ -120,22 +121,28 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
             "right" => $this->plugin->txt("select_aligment_right")
         );
 
+        $styles_options = array(
+            "realistic" => $this->plugin->txt("style_realistic"),
+            "artistic" => $this->plugin->txt("style_artistic"),
+            "minimal" => $this->plugin->txt("style_minimal"),
+            "anime" => $this->plugin->txt("style_anime"),
+            "vintage" => $this->plugin->txt("style_vintage"),
+            "cartoon" => $this->plugin->txt("style_cartoon"),
+        );
+
         $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue($properties["aligments"] ?? "center")->withRequired(true);
-
-        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"] ?? 100);
-
-        $section1 = $ui->input()->field()->section(["prompt"=>$prompt, "file"=>$file, "aligments" => $selectAligment, "widthInput" => $widthInput], "Configuración");
-
+        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
+        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"]);
+        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
         $DIC->ctrl()->setParameterByClass(
-            'ilAImageGeneratorPluginGUI',
+            'ilAIPicPluginGUI',
             'methodDesired',
             'saveImage'
         );
 
-        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', "update");
+        $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "update");
 
-        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("aimageGeneratorForm");
-
+        return $ui->input()->container()->form()->standard($form_action, [$section1])->withSubmitLabel($lng->txt("send"))->withDedicatedName("AIPicForm");
     }
 
     public function renderForm(Standard $form): string
@@ -150,11 +157,10 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
 
         if ($request->getMethod() == "POST" && $action != "post") {
             // Send the prompt
-           $this->sendPromptByJs();
+            $this->sendPromptByJs();
         }
 
         $formHtml = $renderer->render($form);
-
 
         return $formHtml;
     }
@@ -168,21 +174,21 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
         $query = $DIC->http()->wrapper()->query();
 
         $actionFinal = "";
-        if($query->has("methodDesired")) {
+        if ($query->has("methodDesired")) {
             $actionFinal = $query->retrieve("methodDesired", $refinery->to()->string());
         }
-        if($request->getMethod() == "GET" && $actionFinal == "downloadImage" && $query->has("urlDownload")) {
+
+        if ($request->getMethod() == "GET" && $actionFinal == "downloadImage" && $query->has("urlDownload")) {
             $destiny = $query->retrieve("urlDownload", $refinery->to()->string());
             $destiny = urldecode($destiny);
             $imagen = file_get_contents($destiny);
             $query_string = parse_url($destiny, PHP_URL_QUERY);
             parse_str($query_string, $params);
-            $etension = pathinfo($destiny, PATHINFO_EXTENSION);
+            $extension = pathinfo($destiny, PATHINFO_EXTENSION);
 
             $content_type = $params['rsct'] ?? 'image/png';
-
             $now = date_create()->format('Y-m-d_H-i-s');
-            $fileName =  "AImageGenerator$$now.$etension";
+            $fileName = "AIPic$$now.$extension";
 
             header('Content-Description: File Transfer');
             header("Content-Type: $content_type");
@@ -201,62 +207,64 @@ class ilAImageGeneratorEditorGUI implements PageComponentEditor
      */
     public function generateImage(?string $url = null): string
     {
-        $url = $url ?? $this->placeHolderUrl;
         global $DIC, $ilCtrl;
+
+        $url = $url ?? $this->placeHolderUrl;
         $ui = $DIC->ui()->factory();
         $renderer = $DIC->ui()->renderer();
         $image = $ui->image()->responsive($url, "Generated_image");
 
-        $urlButtonDownload = $ilCtrl->getLinkTargetByClass("ilAImageGeneratorPluginGUI", "insert");
+        $urlButtonDownload = $ilCtrl->getLinkTargetByClass("ilAIPicPluginGUI", "insert");
         $buttonDownload = $ui->button()->standard($this->plugin->txt("button_download"), "#")->withOnLoadCode(function ($id) use ($urlButtonDownload) {
             return "$(\"#$id\").click(function() { callSaveEndpoint(\"$urlButtonDownload\"); });";
         });
+        $ilCtrl->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'sendPrompt');
+        $urlButtonPrompt = $ilCtrl->getLinkTargetByClass("ilAIPicPluginGUI", "insert");
 
-        $ilCtrl->setParameterByClass('ilAImageGeneratorPluginGUI', 'methodDesired', 'sendPrompt');
-        $urlButtonPrompt = $ilCtrl->getLinkTargetByClass("ilAImageGeneratorPluginGUI", "insert");
+        $urlBase = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', 'insert');
 
-        $urlBase = $DIC->ctrl()->getLinkTargetByClass('ilAImageGeneratorPluginGUI', 'insert');
         $buttonGenerateImage = $ui->button()->standard($this->plugin->txt("generate_image"), "#")->withOnLoadCode(function ($id) use ($urlButtonPrompt, $urlBase) {
             return "$(\"#$id\").click(function(e) { e.preventDefault(); resendForm(\"$urlButtonPrompt\", \"$urlBase\"); });";
         });
 
 
-        $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px; width: 10%;">' . $renderer->render($buttonDownload) . '</div>';
-        return '<div style="width: 100%; display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
+        $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px;">' . $renderer->render($buttonDownload) . '</div>';
+        return '<div style="display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
 
-                    '<div id="imageDiv" style="margin-right: 10px; position: relative;">' .
-                        '<div id="loadingSpinner" style="display: none; position: absolute; 
+            '<div id="imageDiv" style="padding: 10px; position: relative; display: flex;">' .
+            '<div id="loadingSpinner" style="display: none; position: absolute; 
                                     background-color: white;
                                     box-shadow: 0 0 5px 2px #d1d1d1;
                                     top: 50%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);">' .
-                        '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AImageGenerator/templates/images/loading.gif" alt="loading"/>'
-                        . '</div>' .
-                         $renderer->render($image) .
-                    '</div>' .
-                    $buttonDownloadHtml .
-                    '<div id="redirectButton" style="align-content: center;">' .
-                        $renderer->render($buttonGenerateImage) .
-                    '</div>'.
+            '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/loading.gif" alt="loading""/>'
+            . '</div>' .
+            $renderer->render($image) .
+            '</div>' .
+            $buttonDownloadHtml .
+            '<div id="redirectButton" style="margin: 10px auto;">' .
+            $renderer->render($buttonGenerateImage) .
+            '</div>' .
             '</div>';
     }
 
     #[NoReturn] public function sendPromptByJs($httpCode = 200): void
     {
         http_response_code($httpCode);
-        $sucess = $this->aimageGeneratorProvider->sendPrompt($_POST["prompt"]);
-        if($sucess) {
-            $res = $this->aimageGeneratorProvider->getImagesUrlsArray();
+
+        $rawPrompt = $_POST["prompt"] ?? "";
+        $success = $this->AIPicProvider->sendPrompt($rawPrompt);
+        if ($success) {
+            $res = $this->AIPicProvider->getImagesUrlsArray();
             header('Content-type: application/json');
-            if(count($res) != 0) {
-                echo json_encode(["image" => $res[0]]);
+            if (count($res) !== 0) {
+                echo json_encode(["image" => end($res)]);
                 exit();
             }
         }
+
         echo json_encode(["Error" => $this->plugin->txt("no_images_found")]);
         exit();
     }
-
-
 }

@@ -1,8 +1,7 @@
 <?php
-abstract class AImageGeneratorRequestAbstract implements AImageGeneratorRequestInterface
+abstract class AIPicRequestAbstract implements AIPicRequestInterface
 {
     private CurlHandle $ch;
-
     protected array $header = [];
     protected array $body = [];
     protected string $promptContext = "";
@@ -16,37 +15,37 @@ abstract class AImageGeneratorRequestAbstract implements AImageGeneratorRequestI
         $this->ch = curl_init();
     }
 
-    public function withHeader(array $header): AImageGeneratorRequestAbstract {
+    public function withHeader(array $header): AIPicRequestAbstract {
         $this->header = $header;
         return $this;
     }
 
-    public function withBody(array $body): AImageGeneratorRequestAbstract {
+    public function withBody(array $body): AIPicRequestAbstract {
         $this->body = $body;
         return $this;
     }
 
-    public function withPromptContext(string $promptContext): AImageGeneratorRequestAbstract {
+    public function withPromptContext(string $promptContext): AIPicRequestAbstract {
         $this->promptContext = $promptContext;
         return $this;
     }
 
-    public function withUrl(string $url): AImageGeneratorRequestAbstract {
+    public function withUrl(string $url): AIPicRequestAbstract {
         $this->url = $url;
         return $this;
     }
 
-    public function withRequestPromptKey(string $requestPromptKey): AImageGeneratorRequestAbstract {
+    public function withRequestPromptKey(string $requestPromptKey): AIPicRequestAbstract {
         $this->requestPromptKey = $requestPromptKey;
         return $this;
     }
 
-    public function withResponseKey(string $responseKey): AImageGeneratorRequestAbstract {
+    public function withResponseKey(string $responseKey): AIPicRequestAbstract {
         $this->responseKey = $responseKey;
         return $this;
     }
 
-    public function withResponseSubkey(string $responseSubkey): AImageGeneratorRequestAbstract {
+    public function withResponseSubkey(string $responseSubkey): AIPicRequestAbstract {
         $this->responseSubkey = $responseSubkey;
         return $this;
     }

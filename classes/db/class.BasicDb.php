@@ -10,8 +10,6 @@ use interfaces\BaseDbInterface;
 class BasicDb implements BaseDbInterface {
 
     protected ilDBInterface $db;
-
-
     protected array $ALLOWED_TABLES_TEMPLATE = [];
 
     public function __construct(array $ALLOWED_TABLES) {
@@ -24,7 +22,6 @@ class BasicDb implements BaseDbInterface {
     public function validateTableName(string $identifier): bool {
         return in_array($identifier, $this->ALLOWED_TABLES_TEMPLATE, true);
     }
-
 
     /**
      * @throws Exception

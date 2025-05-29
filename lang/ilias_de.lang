@@ -1,20 +1,20 @@
-obj_xaig#:#AImage Generator
-objs_xaig#:#AImage Generators
-obj_xaig_duplicate#:#Kopieren
-objs_xaig_duplicate#:#Kopiere AImage Generators
-obj_xaig_select#:#Wähle AImage Generator
-xaig_add#:#AImage Generator hinzufügen
-xaig_new#:#Neues AImage Generator
-xaig_read#:#Lesezugriff auf AImage Generator
-xaig_write#:#AImage Generator bearbeiten
-xaig_delete#:#AImage Generator löschen
-xaig_visible#:#AImage Generator ist sichtbar
-xaig_edit_permission#:#Zugriffsrecht bearbeiten
-crs_create_xaig#:#Erstelle AImage Generator
-grp_create_xaig#:#Erstelle AImage Generator
-fold_create_xaig#:#Erstelle AImage Generator
-root_create_xaig#:#Erstelle AImage Generator
-cat_create_xaig#:#Erstelle AImage Generator
+obj_xaip#:#AIPic
+objs_xaip#:#AIPics
+obj_xaip_duplicate#:#Kopieren
+objs_xaip_duplicate#:#Kopiere AIPics
+obj_xaip_select#:#Wähle AIPic
+xaip_add#:#AIPic hinzufügen
+xaip_new#:#Neues AIPic
+xaip_read#:#Lesezugriff auf AIPic
+xaip_write#:#AIPic bearbeiten
+xaip_delete#:#AIPic löschen
+xaip_visible#:#AIPic ist sichtbar
+xaip_edit_permission#:#Zugriffsrecht bearbeiten
+crs_create_xaip#:#Erstelle AIPic
+grp_create_xaip#:#Erstelle AIPic
+fold_create_xaip#:#Erstelle AIPic
+root_create_xaip#:#Erstelle AIPic
+cat_create_xaip#:#Erstelle AIPic
 title#:#Titel
 description#:#Beschreibung
 online#:#Online
@@ -43,35 +43,38 @@ lp_status#:#Lernfortschritt
 update_successful#:Die Änderungen wurden gespeichert.
 news_title#:#Titel (en)
 news_content#:#Inhalt (en)
-xaig_copy#:#AImage Generator kopieren
+xaip_copy#:#AIPic kopieren
 offline#:#Offline
 status#:#Status
-
 prompt_image_input#:#Schreiben Sie eine Aufforderung für das Bild
 prompt_selector#:#Geben Sie eine Aufforderung ein
 prompt#:#Prompt
-xaig_prompt#:#Prompt
+prompt_description#:#Geben Sie den Text ein, der für die Erstellung des Bildes verwendet werden soll
+xaip_prompt#:#Prompt
 image_generated#:#Bild generiert
 generate_image#:#Bild generieren
-
 select_aligment#:#Ausrichtung auswählen
 select_aligment_left#:#Links
 select_aligment_center#:#Zentriert
 select_aligment_right#:#Rechts
-select_aligment_image_position#:#Bildposition
+style_realistic#:#Realistisch
+style_artistic#:#Künstlerisch
+style_minimal#:#Minimalistisch
+style_anime#:#Anime
+style_cartoon#:#Cartoon
+style_vintage#:#Vintage
+select_style#:#Stil auswählen
+select_style_image#:#Bildstil auswählen
+select_aligment_image_position#:#Bildposition auswählen
 button_download#:#Herunterladen
-
 height#:#Höhe
 width#:#Breite
 height_px#:#Höhe (px)
-width_px#:#Breite (px)
-
+width_px#:#Wählen Sie die Größe des Bildes durch Ziehen des Schiebereglers oder durch Eingabe eines Wertes in das Eingabefeld
 url_restriction#:#Muss eine URL sein
-
 header_request#:#Anforderungskopf
 body_request#:#Anforderungskörper
 response#:#Antwort
-
 api_url#:#API URL
 api_url_description#:#API URL zum Generieren von Bildern.
 authentication_key#:#Authentifizierungsschlüsselbeschriftung
@@ -81,6 +84,8 @@ authentication_value_description#:#Authentifizierungswert für den Zugriff auf d
 header_options#:#Zusätzliche Headeroptionen
 header_options_description#:#Dieses Feld ist optional. Sie können der Anfrage zusätzliche Header hinzufügen, z. B. Content-Type. Geben Sie alle Optionen durch Kommas getrennt ein, wobei die Schlüssel-Wert-Paare als Schlüssel:Wert formatiert sind.
 request_body_prompt#:#Anforderungskörper-Prompt-Schlüssel
+request_model#:#Anforderungsmodell
+request_model_description#:#Geben Sie das Modell an, das für die Erstellung des Bildes verwendet werden soll.
 request_body_prompt_description#:#Schlüssel für die Angabe des Bildes im Anforderungskörper. Zum Beispiel, wenn Daten wie Daten => Bild.jpg erscheinen, wäre der Schlüssel Daten.
 request_body_prompt_context#:#Prompt-Kontext
 request_body_prompt_context_description#:#Kontext für die Angabe des Bildes im Anforderungskörper.
@@ -89,14 +94,13 @@ response_body_key#:#Antwortkörperschlüssel
 response_body_key_description#:#Schlüssel zur Angabe der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => image.jpg aussehen, wäre der Schlüssel data.
 response_body_subkey#:#Antwortkörpersubkey
 response_body_subkey_description#:#Unterschlüssel zum Angeben der Bilddaten im Antworttext. Wenn Daten beispielsweise wie data => url => image.jpg aussehen, wäre der Unterschlüssel url.
-
+configuration#:#Konfiguration
 config_saved#:#Konfiguration erfolgreich gespeichert
 no_images_found#:#Keine Bilder gefunden
-
-cmd_insert#:#AImageGenerator einfügen
+cmd_insert#:#AIPic einfügen
 component_title#:#Titel
-component_aigenerator_file#:#AImageGenerator-Datei
-component_width#:#Breite
+component_aigenerator_file#:#AIPic-Datei
+component_width#:#Größe
 component_height#:#Höhe
 component_enableShiftDragZoom#:#Verschieben und Zoomen aktivieren
 component_showResetIcon#:#Reset-Icon anzeigen

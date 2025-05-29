@@ -10,23 +10,20 @@
 }
 
 .left {
-    justify-content: start;
+    justify-content: flex-start;
+    margin-right: auto;
 }
 
 .right {
-    justify-content: end;
+    justify-content: flex-end;
+    margin-left: auto;
 }
 
 body {
     margin: 0;
 }
 
-.aimage_generator_container {
-    width:100%;
-    margin-top:    3px;
-    margin-bottom: 3px;
-}
-
-.aimage_generator_object {
+.aipic_object {
     display: flex;
 }
+

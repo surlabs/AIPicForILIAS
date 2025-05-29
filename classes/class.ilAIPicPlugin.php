@@ -18,13 +18,11 @@
 
 include_once("./Services/COPage/classes/class.ilPageComponentPlugin.php");
 
-class ilAImageGeneratorPlugin extends ilPageComponentPlugin
+class ilAIPicPlugin extends ilPageComponentPlugin
 {
-    public const ID = "xaig";
-
+    public const ID = "xaip";
     private static $instance;
-
-    private UploadServiceAImageGeneratorGUI $uploader;
+    private UploadServiceAIPicGUI $uploader;
 
     public static function getInstance()
     {
@@ -32,11 +30,8 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
             global $DIC;
 
             $component_repository = $DIC["component.repository"];
-
-            $info = $component_repository->getPluginByName("AImageGenerator");
-
+            $info = $component_repository->getPluginByName("AIPic");
             $component_factory = $DIC["component.factory"];
-
             $plugin_obj = $component_factory->getPlugin($info->getId());
 
             self::$instance = $plugin_obj;
@@ -46,13 +41,13 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
     }
     function getComponentType(): string
     {
-        return self::ID; // Identificador del componente
+        return self::ID;
     }
 
 
     function getClass(): string
     {
-        return "ilAImageGeneratorGUI";
+        return "ilAIPicGUI";
     }
 
     protected function uninstallCustom() : void
@@ -63,20 +58,14 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     function getPluginName(): string
     {
-        return "AImageGenerator";
+        return "AIPic";
     }
 
-    /**
-     * Define si este plugin puede usarse dentro de ciertos tipos de contenido.
-     */
     public function isValidParentType(string $a_type): bool
     {
-        return true; // Permitir que se use en cualquier tipo de página
+        return true;
     }
 
-    /**
-     * Define si este plugin es válido para ciertos objetos en ILIAS.
-     */
     public function isValidObjectType($a_type): bool
     {
         return true;
@@ -84,7 +73,7 @@ class ilAImageGeneratorPlugin extends ilPageComponentPlugin
 
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
-        $this->uploader = new UploadServiceAImageGeneratorGUI();
+        $this->uploader = new UploadServiceAIPicGUI();
         if($a_properties["imageId"] != null) {
             $this->uploader->removeFromOutside($a_properties["imageId"]);
         }
