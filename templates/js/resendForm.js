@@ -36,7 +36,7 @@ function resendForm(url, urlBase) {
     let dzInstance = null;
     let associatedFileInput = null;
     const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').eq(1)[0];
-
+    clearMessage();
     if (dropzoneVisualElement) {
         const parentUiInputFile = dropzoneVisualElement.closest('.ui-input-file');
 
@@ -140,7 +140,13 @@ function resendForm(url, urlBase) {
                 loadingSpinner.style.display = "none";
                 checkChanges();
             }, 1500);
-            alert("Error sending data to server: " + textStatus);
+
+            displayMessage(`
+  <div class="alert alert-danger" role="alert">
+    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+     An error occurred while generating the image. Please check the API configuration or try again later.
+  </div>
+`);
         });
 }
 
@@ -203,4 +209,25 @@ function checkChanges() {
     const anyEmpty = promptEmpty || isWidthInputEmpty();
 
     setDisableSendbuttons(anyEmpty, imgEmptyOrDefault);
+}
+
+function displayMessage(htmlMessage) {
+    let $messageArea = $("#global-message-area");
+    if (!$messageArea.length) {
+        $messageArea = $('<div id="global-message-area" style="margin-bottom: 15px;"></div>');
+        $("#il_center_col").prepend($messageArea);
+    }
+    $messageArea.html(htmlMessage).show();
+
+    const focusLink = $messageArea.find('a[name="il_message_focus"]');
+    if (focusLink.length) {
+        focusLink.focus();
+    }
+}
+
+function clearMessage() {
+    const $messageArea = $("#global-message-area");
+    if ($messageArea.length) {
+        $messageArea.empty().hide();
+    }
 }
