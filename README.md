@@ -36,7 +36,7 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
     ```
 2.  Clone the repository into a directory named `AIPic`:
     ```bash
-    git clone https://github.com/surlabs/AIPic.git ./AIPic
+    git clone https://github.com/surlabs/AIPicForILIAS.git ./AIPic
     cd AIPic
     git checkout main
     ```
