@@ -4,6 +4,7 @@ $("#redirectButton")
     .width("100%")
     .children()
     .css("margin-bottom", "10px")
+    .css("width", "100%")
     .css("width", "100%");
 
 // Form elements selectors
@@ -15,11 +16,20 @@ const sendButton = $('.il-standard-form-cmd button');
 const widthInput = $('input[name="AIPicForm/input_6/input_11"]');
 const alignmentButtons = $('.aipic-btn-container button');
 const finalPromptDisplay = $('#final-prompt-container input');
-const originalButtonText = generateButton.text();
+let originalButtonText = '';
 
 
 document.addEventListener("DOMContentLoaded", function () {
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
+
+    const redirectButtonDiv = $("#redirectButton");
+    const txtGenerate = redirectButtonDiv.data("txt-generate");
+    if (txtGenerate) {
+        originalButtonText = txtGenerate;
+        generateButton.text(originalButtonText);
+    }else{
+        originalButtonText = generateButton.text();
+    }
 
     prompt.on("input", checkChanges);
     prompt.on("input", updateFinalPromptDisplay);
@@ -73,7 +83,9 @@ function resendForm(url, urlBase) {
     loadingSpinner.style.display = "block";
     setDisableSendbuttons(true, true);
     setDisableFormControls(true);
-    generateButton.text("Generating...");
+
+    const redirectButtonDiv = $("#redirectButton");
+    generateButton.text(redirectButtonDiv.data("txt-generating"));
 
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
@@ -228,6 +240,7 @@ function setDisableFormControls(disabled) {
     $('#aipic_slider').prop('disabled', disabled);
     $('.aipic-btn-container button').prop('disabled', disabled);
 }
+
 function checkChanges() {
     const imgDiv = document.getElementById("imageDiv");
     const img = imgDiv.children[1];

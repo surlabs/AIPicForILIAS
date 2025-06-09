@@ -243,7 +243,9 @@ class ilAIPicEditorGUI
             $renderer->render($image) .
             '</div>' .
             $buttonDownloadHtml .
-            '<div id="redirectButton" style="margin: 10px auto;">' .
+            '<div id="redirectButton" style="margin: 10px auto;"' .
+            ' data-txt-generate="' . htmlspecialchars($this->plugin->txt("generate_image")) . '"' .
+            ' data-txt-generating="' . htmlspecialchars($this->plugin->txt("generating_image")) . '">' .
             $renderer->render($buttonGenerateImage) .
             '</div>' .
             '</div>';

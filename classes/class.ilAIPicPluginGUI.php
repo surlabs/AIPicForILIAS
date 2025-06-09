@@ -50,7 +50,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
                     $this->uploader->removeFromOutside($this->getProperties()["imageId"]);
                 }
                 $result[0]['imageId'] = $result[0]['file'][0];
-                // TODO Check the logic
                 $result[0]["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
                 $result[0]["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
