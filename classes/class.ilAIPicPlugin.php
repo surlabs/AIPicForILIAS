@@ -73,10 +73,11 @@ class ilAIPicPlugin extends ilPageComponentPlugin
 
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
-        $this->uploader = new UploadServiceAIPicGUI();
-        if($a_properties["imageId"] != null) {
-            $this->uploader->removeFromOutside($a_properties["imageId"]);
+        if (!$move_operation) {
+            $this->uploader = new UploadServiceAIPicGUI();
+            if (!empty($a_properties["imageId"])) {
+                $this->uploader->removeFromOutside($a_properties["imageId"]);
+            }
         }
     }
-
 }
