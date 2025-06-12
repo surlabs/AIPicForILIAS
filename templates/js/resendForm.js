@@ -4,16 +4,36 @@ $("#redirectButton")
     .width("100%")
     .children()
     .css("margin-bottom", "10px")
+    .css("width", "100%")
     .css("width", "100%");
 
+// Form elements selectors
 const prompt = $(".il-section-input .ui-input-textarea textarea");
 const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
 const generateButton = $("#redirectButton button");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const sendButton = $('.il-standard-form-cmd button');
+const widthInput = $('input[name="AIPicForm/input_6/input_11"]');
+const alignmentButtons = $('.aipic-btn-container button');
+const finalPromptDisplay = $('#final-prompt-container input');
+let originalButtonText = '';
+
 
 document.addEventListener("DOMContentLoaded", function () {
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
+
+    const redirectButtonDiv = $("#redirectButton");
+    const txtGenerate = redirectButtonDiv.data("txt-generate");
+    if (txtGenerate) {
+        originalButtonText = txtGenerate;
+        generateButton.text(originalButtonText);
+    }else{
+        originalButtonText = generateButton.text();
+    }
+
+    prompt.on("input", checkChanges);
+    prompt.on("input", updateFinalPromptDisplay);
+    styleSelect.on("change", updateFinalPromptDisplay);
 
     prompt.on("input", checkChanges);
     $('input[name="AIPicForm/input_6/input_11"]').on("input", () => {
@@ -26,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     changePosition();
     changeSize();
     checkChanges();
+    updateFinalPromptDisplay();
 });
 
 
@@ -61,6 +82,10 @@ function resendForm(url, urlBase) {
 
     loadingSpinner.style.display = "block";
     setDisableSendbuttons(true, true);
+    setDisableFormControls(true);
+
+    const redirectButtonDiv = $("#redirectButton");
+    generateButton.text(redirectButtonDiv.data("txt-generating"));
 
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
@@ -120,6 +145,9 @@ function resendForm(url, urlBase) {
             } catch (error) {
                 loadingSpinner.style.display = "none";
                 setDisableSendbuttons(false, false);
+                setDisableFormControls(false);
+                generateButton.text(originalButtonText);
+                setDisableSendbuttons(false, false);
             }
 
             if (imgDiv && imgDiv.children && imgDiv.children.length > 1 && imgDiv.children[1].tagName === 'IMG') {
@@ -127,6 +155,8 @@ function resendForm(url, urlBase) {
             }
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
+                setDisableFormControls(false);
+                generateButton.text(originalButtonText);
                 checkChanges();
             }, 1500);
 
@@ -138,6 +168,8 @@ function resendForm(url, urlBase) {
             setDisableSendbuttons(false, false);
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
+                setDisableFormControls(false);
+                generateButton.text(originalButtonText);
                 checkChanges();
             }, 1500);
 
@@ -201,6 +233,14 @@ function setDisableSendbuttons(disableGen, disableSend) {
     }, 50);
 }
 
+function setDisableFormControls(disabled) {
+    prompt.prop('disabled', disabled);
+    styleSelect.prop('disabled', disabled);
+    widthInput.prop('disabled', disabled);
+    $('#aipic_slider').prop('disabled', disabled);
+    $('.aipic-btn-container button').prop('disabled', disabled);
+}
+
 function checkChanges() {
     const imgDiv = document.getElementById("imageDiv");
     const img = imgDiv.children[1];
@@ -230,4 +270,11 @@ function clearMessage() {
     if ($messageArea.length) {
         $messageArea.empty().hide();
     }
+}
+
+function updateFinalPromptDisplay() {
+    const userPrompt = prompt.val();
+    const style = styleSelect.val();
+    const finalPrompt = setPromptStyle(userPrompt, style);
+    finalPromptDisplay.val(finalPrompt);
 }

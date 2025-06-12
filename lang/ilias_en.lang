@@ -53,6 +53,7 @@ prompt_description#:#Enter the text to be used for creating the image
 image_generated#:#Image Generated
 xaip_prompt#:#Prompt
 generate_image#:#Generate Image
+generating_image#:#Generating Image ...
 select_aligment#:#Select alignment
 select_aligment_left#:#Left
 select_aligment_center#:#Center

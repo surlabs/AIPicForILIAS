@@ -50,7 +50,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
                     $this->uploader->removeFromOutside($this->getProperties()["imageId"]);
                 }
                 $result[0]['imageId'] = $result[0]['file'][0];
-                // TODO Check the logic
                 $result[0]["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
                 $result[0]["fileName"] = $result[0]["file"][0];
                 unset($result[0]['file']);
@@ -211,22 +210,20 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
 
     /**
      * @throws ilTemplateException
+     * @throws Exception
      */
     public function getElementHTML(string $a_mode, array $a_properties, string $plugin_version): string
     {
         global $DIC;
 
+        if (empty($a_properties["imageId"])) {
+            return "";
+        }
+
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
 
-        $old_path = ILIAS_WEB_DIR . '/' . CLIENT_ID . "/AIPic/" . $a_properties["imageId"];
-
-        if (!file_exists($old_path)) {
-            $irss = $DIC->resourceStorage();
-            $file_name = $irss->consume()->src(new ResourceIdentification($a_properties["imageId"]))->getSrc();
-
-        } else {
-            $file_name = $old_path;
-        }
+        $irss = $DIC->resourceStorage();
+        $file_name = $irss->consume()->src(new ResourceIdentification($a_properties["imageId"]))->getSrc();
         $a_properties["fileName"] = $file_name;
 
         $tpl = new ilTemplate("aIPic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
