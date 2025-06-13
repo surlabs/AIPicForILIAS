@@ -132,7 +132,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $ilCtrl->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'sendPrompt');
 
         if ($request->getMethod() == "POST" && $action != "post" && $actionDesired == "saveImage") {
-            $this->editorGUI->saveImage();
             $request = $DIC->http()->request();
             $form = $this->editorGUI->getPromptForm();
             $form = $form->withRequest($request);

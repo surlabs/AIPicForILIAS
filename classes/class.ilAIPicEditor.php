@@ -35,18 +35,6 @@ class ilAIPicEditorGUI
         ];
     }
 
-    /**
-     * @throws Exception
-     */
-    public function saveImage(): void
-    {
-        global $DIC;
-
-        $request = $DIC->http()->request();
-        $form = $this->getPromptForm();
-        $form = $form->withRequest($request);
-    }
-
     public function getEditComponentForm(UIWrapper $ui_wrapper, string $page_type, \ilPageObjectGUI $page_gui, int $style_id, string $pcid): string
     {
         global $DIC;
@@ -199,6 +187,8 @@ class ilAIPicEditorGUI
             header('Content-Length: ' . strlen($imagen));
 
             echo $imagen;
+
+            exit();
         }
     }
 

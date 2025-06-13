@@ -56,7 +56,7 @@ function resendForm(url, urlBase) {
 
     let dzInstance = null;
     let associatedFileInput = null;
-    const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').eq(1)[0];
+    const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').last()[0];
     clearMessage();
     if (dropzoneVisualElement) {
         const parentUiInputFile = dropzoneVisualElement.closest('.ui-input-file');
