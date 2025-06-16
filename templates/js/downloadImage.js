@@ -1,8 +1,7 @@
 function downloadImage(imageUrl, fileName = "imagen") {
-    console.log("Descargando imagen:", imageUrl);
-    fetch(imageUrl, { mode: "no-cors" })
-        .then(response => response.blob())
-        .then(blob => {
+    fetch(imageUrl, {mode: "no-cors"})
+        .then((response) => response.blob())
+        .then((blob) => {
             const imageUrl = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = imageUrl;
@@ -11,5 +10,5 @@ function downloadImage(imageUrl, fileName = "imagen") {
             a.click();
             document.body.removeChild(a);
         })
-        .catch(error => console.error("Error descargando la imagen:", error));
+        .catch((error) => console.error("Error downloading the image:", error));
 }
