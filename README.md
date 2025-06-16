@@ -1,7 +1,7 @@
 <div style="text-align: center; transform: scale(.5);">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/abrahammordev/AIPic/blob/main/templates/images/AIPicBanner.png?raw=true" />
-    <img alt="AIPic Plugin Banner" src="https://github.com/abrahammordev/AIPic/blob/8469a03b3e0d0a750f81f7c7f634fad48c5b33de/templates/images/AIPicBanner.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/surlabs/AIPicForILIAS/blob/5724ab90d79377daa5350f920c584ec10a01fbba/templates/images/AIPicBanner.png" />
+    <img alt="AIPic Plugin Banner" src="https://github.com/surlabs/AIPicForILIAS/blob/5724ab90d79377daa5350f920c584ec10a01fbba/templates/images/AIPicBanner.png" />
   </picture>
 </div>
 
