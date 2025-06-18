@@ -1,9 +1,4 @@
-<div style="text-align: center; transform: scale(.5);">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/surlabs/AIPicForILIAS/blob/5724ab90d79377daa5350f920c584ec10a01fbba/templates/images/AIPicBanner.png" />
-    <img alt="AIPic Plugin Banner" src="https://github.com/surlabs/AIPicForILIAS/blob/5724ab90d79377daa5350f920c584ec10a01fbba/templates/images/AIPicBanner.png" />
-  </picture>
-</div>
+![AIPic](https://github.com/user-attachments/assets/552ecd94-3452-4659-abd7-287d9f5ff440)
 
 # AIPic Page Component Plugin for ILIAS
 
