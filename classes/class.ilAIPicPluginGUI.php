@@ -229,6 +229,91 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
+     * Override createElement to create MediaObject instead of plugin object
+     * This ensures images persist even if plugin is uninstalled
+     */
+    public function createElement(array $a_properties): bool
+    {
+        global $DIC;
+
+        try {
+            $mob = new ilObjMediaObject((int)$a_properties["imageId"]);
+
+            if (!$mob->getId()) {
+                throw new Exception("MediaObject not found with ID: " . $a_properties["imageId"]);
+            }
+
+            $mediaItems = $mob->getMediaItems();
+            if (empty($mediaItems)) {
+                throw new Exception("No MediaItems found for MediaObject ID: " . $a_properties["imageId"]);
+            }
+
+            $mediaItem = $mediaItems[0];
+
+            $this->applyLayoutProperties($mediaItem, $a_properties);
+            $mediaItem->update();
+
+            $pc_media = new ilPCMediaObject($this->getPCGUI()->getPage());
+            $pc_media->setMediaObject($mob);
+            $pc_media->createAlias(
+                $this->getPCGUI()->getPage(),
+                $this->getPCGUI()->getHierId(),
+                ""
+            );
+
+            $this->applyAlignment($pc_media, $a_properties);
+
+            $this->updated = $this->getPCGUI()->getPage()->update();
+
+            return $this->updated === true;
+
+        } catch (Exception $e) {
+            // Log error
+            $DIC->logger()->root()->error("Failed to create MediaObject: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Apply layout properties to MediaItem
+     */
+    private function applyLayoutProperties(ilMediaItem $mediaItem, array $properties): void
+    {
+        if (isset($properties["widthInput"]) && $properties["widthInput"] > 0) {
+            // With no multiplier, image is too small
+            $withMultiplier = $properties["widthInput"] * 12;
+            $mediaItem->setWidth((string)$withMultiplier);
+        }
+    }
+
+    /**
+     * Apply alignment to MediaObject layout
+     */
+    private function applyAlignment(ilPCMediaObject $pc_media, array $properties): void
+    {
+        if (!isset($properties["aligments"])) {
+            return;
+        }
+
+        $alignment = $properties["aligments"];
+        $horizontal_align = match ($alignment) {
+            "center" => "Center",
+            "right" => "Right",
+            default => "Left",
+        };
+
+        // Get the MediaAlias node and update layout
+        $dom_node = $pc_media->getDomNode();
+        if ($dom_node) {
+            $xpath = new DOMXPath($pc_media->getDomDoc());
+            $layout_nodes = $xpath->query(".//Layout", $dom_node);
+            if ($layout_nodes->length > 0) {
+                $layout_nodes->item(0)->setAttribute("HorizontalAlign", $horizontal_align);
+            }
+        }
+    }
+
+    /**
      * @throws ilTemplateException
      * @throws Exception
      */
@@ -262,5 +347,6 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $tpl->setVariable("PROPERTIES", json_encode($a_properties));
 
         return $tpl->get();
+
     }
 }

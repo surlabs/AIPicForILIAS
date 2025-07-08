@@ -98,6 +98,8 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
     }
 
     /**
+     * Save directly to MediaObject directory instead of ResourceStorage
+     * 
      * @throws IllegalStateException
      * @throws Exception
      */
@@ -111,10 +113,34 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
 
         $result = end($array);
         if ($result instanceof UploadResult && $result->isOK()) {
-            $i = $this->storage->manage()->upload($result, $this->stakeholder);
+            $mob = new ilObjMediaObject();
+            $mob->create();
+
+            $mob_dir = ilObjMediaObject::_getDirectory($mob->getId());
+            if (!is_dir($mob_dir)) {
+                $mob->createDirectory();
+            }
+
+            $file_name = 'aipic_' . $mob->getId() . '.png';
+            $file_path = $mob_dir . "/" . $file_name;
+
+            if (!move_uploaded_file($result->getPath(), $file_path)) {
+                throw new Exception("Failed to move uploaded file to MediaObject directory");
+            }
+
+            $mediaItem = new ilMediaItem();
+            $mob->addMediaItem($mediaItem);
+            $mediaItem->setPurpose("Standard");
+            $mediaItem->setNr(1);
+            $mediaItem->setFormat($result->getMimeType());
+            $mediaItem->setLocation($file_name);
+            $mediaItem->setLocationType("LocalFile");
+            $mediaItem->setMobId($mob->getId());
+            $mediaItem->create();
+
             $status = HandlerResult::STATUS_OK;
-            $identifier = $i->serialize();
-            $message = 'Upload ok';
+            $identifier = (string)$mob->getId();
+            $message = 'Upload ok - saved directly to MediaObject';
         } else {
             $status = HandlerResult::STATUS_FAILED;
             $identifier = '';
@@ -149,21 +175,30 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
         );
     }
 
-    /** @noinspection DuplicatedCode */
+    /**
+     * Get info from MediaObject instead of ResourceStorage
+     */
     public function getInfoResult(string $identifier): ?FileInfoResult
     {
-        $id = $this->storage->manage()->find($identifier);
-        if ($id === null) {
+        $mob = new ilObjMediaObject((int)$identifier);
+        if (!$mob->getId()) {
             return new BasicFileInfoResult($this->getFileIdentifierParameterName(), 'unknown', 'unknown', 0, 'unknown');
         }
-        $r = $this->storage->manage()->getCurrentRevision($id)->getInformation();
+
+        $mediaItems = $mob->getMediaItems();
+        if (empty($mediaItems)) {
+            return new BasicFileInfoResult($this->getFileIdentifierParameterName(), 'unknown', 'unknown', 0, 'unknown');
+        }
+
+        $mediaItem = $mediaItems[0];
+        $file_path = ilObjMediaObject::_getDirectory($mob->getId()) . "/" . $mediaItem->getLocation();
 
         return new BasicFileInfoResult(
             $this->getFileIdentifierParameterName(),
             $identifier,
-            $r->getTitle(),
-            $r->getSize(),
-            $r->getMimeType()
+            $mediaItem->getLocation(),
+            file_exists($file_path) ? filesize($file_path) : 0,
+            $mediaItem->getFormat()
         );
     }
 
