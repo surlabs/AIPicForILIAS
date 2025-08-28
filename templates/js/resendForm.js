@@ -1,11 +1,12 @@
 // Manage the disposition of the generate image button
 $("#redirectButton")
-    .appendTo($(".ui-input-textarea").parent())
+    .appendTo($("label:contains('Select style')").closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10"))
     .width("100%")
     .children()
-    .css("margin-bottom", "10px")
-    .css("width", "100%")
-    .css("width", "100%");
+    .css({
+        "margin-bottom": "10px",
+        "width": "100%"
+    });
 
 // Form elements selectors
 const prompt = $(".il-section-input .ui-input-textarea textarea");
