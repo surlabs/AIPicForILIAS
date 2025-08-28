@@ -1,6 +1,9 @@
 // Manage the disposition of the generate image button
-$("#redirectButton")
-    .appendTo($("label:contains('Select style')").closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10"))
+$("#redirectButton").appendTo(
+    $("label").filter(function() {
+        return /Select style|Seleccionar estilo|Stil auswählen/.test($(this).text());
+    }).closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10")
+)
     .width("100%")
     .children()
     .css({
