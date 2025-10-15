@@ -38,8 +38,6 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
 3.  After installation or updating the plugin, run the following commands in the ILIAS root folder:
     ```bash
     composer install --no-dev
-    npm install
-    php setup/setup.php update
     ```
     **Important:** Make sure your main `composer.json` and ILIAS `.gitignore` files do **not** exclude plugins. Also, do **not** use the `--no-plugins` flag during ILIAS setup.
 
