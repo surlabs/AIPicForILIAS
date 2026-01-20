@@ -8,7 +8,7 @@ $("#redirectButton")
     .css("width", "100%");
 
 // Form elements selectors
-const prompt = $(".il-section-input .ui-input-textarea textarea");
+const prompt = $("fieldset .c-input__field textarea");
 const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
 const generateButton = $("#redirectButton button");
 const loadingSpinner = document.getElementById("loadingSpinner");
