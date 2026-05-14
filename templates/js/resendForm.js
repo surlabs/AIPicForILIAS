@@ -2,7 +2,6 @@ let prompt, styleSelect, generateButton, loadingSpinner, sendButton, widthInput,
 let originalButtonText = '';
 let currentGeneratedImageUrl = null;
 
-// Initialize on DOMContentLoaded to prevent race conditions with ILIAS core scripts
 document.addEventListener("DOMContentLoaded", function () {
     prompt = $("fieldset .c-input__field textarea");
     styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
@@ -17,18 +16,13 @@ document.addEventListener("DOMContentLoaded", function () {
         $("label").filter(function() {
             return /Select style|Seleccionar estilo|Stil auswhlen/.test($(this).text());
         }).closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10")
-    )
-        .width("100%")
-        .children()
-        .css({
-            "margin-bottom": "10px",
-            "width": "100%"
-        });
+    ).width("100%").children().css({ "margin-bottom": "10px", "width": "100%" });
 
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
 
     const redirectButtonDiv = $("#redirectButton");
     const txtGenerate = redirectButtonDiv.data("txt-generate");
+
     if (txtGenerate) {
         originalButtonText = txtGenerate;
         generateButton.text(originalButtonText);
@@ -59,12 +53,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function resendForm(url, urlBase) {
     const promptValue = setPromptStyle(prompt.val(), styleSelect.val());
-
     let dzInstance = null;
     let associatedFileInput = null;
     const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').last()[0];
 
-    // Clear any previous global messages before starting a new request
     clearMessage();
 
     if (dropzoneVisualElement) {
@@ -80,9 +72,7 @@ function resendForm(url, urlBase) {
     }
 
     const resetButton = $('.glyphicon.glyphicon-remove');
-    if (resetButton.length) {
-        resetButton.click();
-    }
+    if (resetButton.length) resetButton.click();
 
     if (associatedFileInput) {
         associatedFileInput.value = "";
@@ -99,69 +89,48 @@ function resendForm(url, urlBase) {
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
 
-            // --- START: JSON PARSER SAFEGUARD ---
-            // Ensure the backend response is treated as a JavaScript Object, not a String
+            // Parse string response
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
-                    console.warn("AIPic Parse Warning: Response is not valid JSON", e);
+                    console.warn("AIPic Parse Warning", e);
                 }
             }
-            // --- END: JSON PARSER SAFEGUARD ---
 
-            // --- START: BASE64 INTERCEPTOR ---
+            // Recover Base64 payload if hidden inside error string
             if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
                 try {
                     const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
                     if (jsonStringMatch) {
                         const rawJson = JSON.parse(jsonStringMatch[0]);
-                        const b64String = rawJson.data[0].b64_json;
-                        data.image = {
-                            mode: 'base64',
-                            value: b64String,
-                            mime: 'image/png'
-                        };
-                        // Delete the Error property so it doesn't trigger the UI error block below
+                        data.image = { mode: 'base64', value: rawJson.data[0].b64_json, mime: 'image/png' };
                         delete data.Error;
                     }
                 } catch (e) {
                     console.error("Failed to recover Base64 payload:", e);
                 }
             }
-            // --- END: BASE64 INTERCEPTOR ---
 
-            // --- START: NEW ROBUST ERROR HANDLING FOR UI ---
+            // Handle managed AI or network errors
             let apiErrorMsg = null;
-
-            // Check if the backend sent the error as a direct object property
             if (data && data.error === true && data.message) {
                 apiErrorMsg = data.message;
-            }
-            // Check if the ILIAS controller wrapped our JSON inside the "data.Error" string property
-            else if (data && data.Error) {
+            } else if (data && data.Error) {
                 if (typeof data.Error === 'string') {
                     try {
                         const parsedStr = JSON.parse(data.Error);
-                        // Extract our custom friendly message
-                        if (parsedStr && parsedStr.error === true && parsedStr.message) {
-                            apiErrorMsg = parsedStr.message;
-                        } else {
-                            // Fallback to raw string if it's a different JSON error
-                            apiErrorMsg = data.Error;
-                        }
+                        apiErrorMsg = (parsedStr && parsedStr.error === true && parsedStr.message) ? parsedStr.message : data.Error;
                     } catch (e) {
-                        // Fallback to raw string if it's plain text and not JSON
                         apiErrorMsg = data.Error;
                     }
                 } else if (data.Error.message) {
                     apiErrorMsg = data.Error.message;
                 } else {
-                    apiErrorMsg = "An unknown error occurred in the AI integration.";
+                    apiErrorMsg = "Unknown AI integration error.";
                 }
             }
 
-            // If we captured any error, display it and halt execution
             if (apiErrorMsg) {
                 loadingSpinner.style.display = "none";
                 setDisableFormControls(false);
@@ -174,10 +143,8 @@ function resendForm(url, urlBase) {
                     ${apiErrorMsg}
                   </div>
                 `);
-
-                return; // Crucial: Stop execution here to prevent getImageBlob from crashing
+                return;
             }
-            // --- END: NEW ROBUST ERROR HANDLING FOR UI ---
 
             const downloadButton = document.getElementById("downloadButton");
             const imgDiv = document.getElementById("imageDiv");
@@ -189,9 +156,7 @@ function resendForm(url, urlBase) {
                 const file = new File([blob], `generated_image.${fileExtension}`, {type: blob.type || 'image/png'});
                 const previewUrl = URL.createObjectURL(blob);
 
-                if (currentGeneratedImageUrl) {
-                    URL.revokeObjectURL(currentGeneratedImageUrl);
-                }
+                if (currentGeneratedImageUrl) URL.revokeObjectURL(currentGeneratedImageUrl);
                 currentGeneratedImageUrl = previewUrl;
 
                 if (dzInstance) {
@@ -204,11 +169,8 @@ function resendForm(url, urlBase) {
                 } else if (dropzoneVisualElement && typeof Dropzone !== 'undefined') {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
-                    const events = ['dragenter', 'dragover', 'drop'];
-                    events.forEach(eventName => {
-                        dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, {
-                            bubbles: true, cancelable: true, dataTransfer
-                        }));
+                    ['dragenter', 'dragover', 'drop'].forEach(eventName => {
+                        dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer }));
                     });
                 }
 
@@ -219,9 +181,9 @@ function resendForm(url, urlBase) {
                 setDisableFormControls(false);
                 generateButton.text(originalButtonText);
 
-                // --- MODIFIED: Read the dynamic translation from the DOM attribute injected via PHP ---
+                // Fetch dynamic i18n translation
                 const redirectBtnEl = $("#redirectButton");
-                let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred while processing the image. Please contact the administrator.";
+                let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred. Please contact the administrator.";
 
                 displayMessage(`
                   <div class="alert alert-danger" role="alert">
@@ -232,12 +194,9 @@ function resendForm(url, urlBase) {
                 return;
             }
 
-            // Safe DOM search
             if (imgDiv) {
                 const targetImg = $(imgDiv).find('img[alt="Generated_image"]');
-                if (targetImg.length) {
-                    targetImg.attr('src', currentGeneratedImageUrl);
-                }
+                if (targetImg.length) targetImg.attr('src', currentGeneratedImageUrl);
             }
 
             setTimeout(() => {
@@ -271,32 +230,21 @@ function resendForm(url, urlBase) {
 }
 
 async function getImageBlob(imagePayload, urlBase) {
-    if (!imagePayload || !imagePayload.mode || !imagePayload.value) {
-        throw new Error('Invalid image payload structure');
-    }
-
-    if (imagePayload.mode === 'base64') {
-        return base64ToBlob(imagePayload.value, imagePayload.mime || 'image/png');
-    }
+    if (!imagePayload || !imagePayload.mode || !imagePayload.value) throw new Error('Invalid image payload structure');
+    if (imagePayload.mode === 'base64') return base64ToBlob(imagePayload.value, imagePayload.mime || 'image/png');
 
     if (imagePayload.mode === 'url') {
         const currentUrl = new URL(urlBase, window.location.origin);
         currentUrl.search = window.location.search;
         currentUrl.searchParams.delete("urlDownload");
-
-        // Preserve AI signature tokens using encodeURIComponent
         currentUrl.searchParams.set("urlDownload", encodeURIComponent(imagePayload.value));
-
         currentUrl.searchParams.delete("methodDesired");
         currentUrl.searchParams.set("methodDesired", "downloadImage");
 
         const fetchUrl = currentUrl.pathname + "?" + currentUrl.searchParams.toString();
         const response = await fetch(fetchUrl);
 
-        if (!response.ok) {
-            throw new Error(`Error downloading image from URL. HTTP Status: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`Error downloading image from URL. HTTP Status: ${response.status}`);
         return response.blob();
     }
 
@@ -305,11 +253,7 @@ async function getImageBlob(imagePayload, urlBase) {
 
 function base64ToBlob(base64Value, mimeType) {
     let cleanBase64 = base64Value.replace(/\s/g, '');
-
-    // Strip metadata headers to prevent DOMExceptions
-    if (cleanBase64.includes(',')) {
-        cleanBase64 = cleanBase64.split(',')[1];
-    }
+    if (cleanBase64.includes(',')) cleanBase64 = cleanBase64.split(',')[1];
 
     const byteCharacters = atob(cleanBase64);
     const byteNumbers = new Array(byteCharacters.length);
@@ -323,11 +267,7 @@ function base64ToBlob(base64Value, mimeType) {
 
 function getFileExtension(mimeType) {
     const extensionMap = {
-        'image/jpeg': 'jpg',
-        'image/jpg': 'jpg',
-        'image/png': 'png',
-        'image/gif': 'gif',
-        'image/webp': 'webp'
+        'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp'
     };
     return extensionMap[mimeType] || 'png';
 }
@@ -343,19 +283,12 @@ function setPromptStyle(userPrompt, style) {
     };
 
     const styleDesc = styleMap[style] || "";
-    if (!styleDesc.trim()) {
-        return userPrompt.trim();
-    }
-    return `${userPrompt.trim()}, ${styleDesc}`;
+    return styleDesc.trim() ? `${userPrompt.trim()}, ${styleDesc}` : userPrompt.trim();
 }
 
 function isWidthInputEmpty() {
-    let res = true;
     const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val()?.trim() || "";
-    if (inputValue !== "" && !isNaN(inputValue)) {
-        res = false;
-    }
-    return res;
+    return !(inputValue !== "" && !isNaN(inputValue));
 }
 
 function setDisableSendbuttons(disableGen, disableSend) {
@@ -379,16 +312,13 @@ function checkChanges() {
 
     if (imgDiv) {
         const targetImg = $(imgDiv).find('img[alt="Generated_image"]')[0];
-        if (targetImg && targetImg.src !== "" && !targetImg.src.includes("placeholder")) {
-            imgEmptyOrDefault = false;
-        }
+        if (targetImg && targetImg.src !== "" && !targetImg.src.includes("placeholder")) imgEmptyOrDefault = false;
     }
 
     const isSpinnerVisible = loadingSpinner ? loadingSpinner.style.display === "block" : false;
     const promptEmpty = prompt ? prompt.val().length === 0 : true;
-    const anyEmpty = promptEmpty || isSpinnerVisible || isWidthInputEmpty();
 
-    setDisableSendbuttons(anyEmpty, imgEmptyOrDefault);
+    setDisableSendbuttons(promptEmpty || isSpinnerVisible || isWidthInputEmpty(), imgEmptyOrDefault);
 }
 
 function displayMessage(htmlMessage) {
@@ -400,25 +330,16 @@ function displayMessage(htmlMessage) {
     $messageArea.html(htmlMessage).show();
 
     const focusLink = $messageArea.find('a[name="il_message_focus"]');
-    if (focusLink.length) {
-
-        focusLink.focus();
-    }
+    if (focusLink.length) focusLink.focus();
 }
 
 function clearMessage() {
-    // Clear global messages natively
     const $messageArea = $("#global-message-area");
-    if ($messageArea.length) {
-        $messageArea.empty().hide();
-    }
+    if ($messageArea.length) $messageArea.empty().hide();
 }
 
 function updateFinalPromptDisplay() {
     if(prompt && styleSelect && finalPromptDisplay) {
-        const userPrompt = prompt.val();
-        const style = styleSelect.val();
-        const finalPrompt = setPromptStyle(userPrompt, style);
-        finalPromptDisplay.val(finalPrompt);
+        finalPromptDisplay.val(setPromptStyle(prompt.val(), styleSelect.val()));
     }
 }

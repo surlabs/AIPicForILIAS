@@ -143,7 +143,7 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
             $bodyRequest = json_encode($this->getBody());
             $fullPrompt = $this->promptContext . " " . $prompt;
 
-            // 1. INPUT TRANSLATOR: Format payload specifically for Google Gemini API
+            // Format payload for Google Gemini API
             if (str_contains($this->url, 'googleapis.com')) {
                 $bodyRequest = json_encode([
                     "contents" => [
@@ -167,18 +167,15 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
             curl_setopt($this->ch, CURLOPT_TIMEOUT, 120);
 
             $rawResponse = curl_exec($this->ch);
-
-            // --- NEW BLOCK: SECURE ERROR HANDLING ---
             $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
             $curlError = curl_error($this->ch);
 
-            // Check for network failure or API error response (HTTP 4xx or 5xx)
+            // Handle network or API errors silently
             if ($rawResponse === false || $httpCode >= 400) {
-                // Log the real error to the internal server logs, keeping it invisible to the user
                 $realError = $rawResponse !== false ? $rawResponse : $curlError;
                 error_log("AIPic Plugin Error (HTTP $httpCode) - Real IA Reason: " . $realError);
 
-                // Use a language key instead of a hardcoded string
+                // Return i18n key for UI
                 $genericError = [
                     "error" => true,
                     "error_key" => "err_api_connection"
@@ -187,13 +184,10 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
                 $this->response = json_encode($genericError);
                 return $this->response;
             }
-            // --- END OF ERROR HANDLING BLOCK ---
 
-            // 2. OUTPUT TRANSLATOR: Normalize response for the plugin architecture
+            // Normalize Google Gemini response to match plugin architecture
             if (str_contains($this->url, 'googleapis.com') && is_string($rawResponse)) {
                 $decoded = json_decode($rawResponse, true);
-
-                // Extract the base64 image data from the nested Gemini response
                 $parts = $decoded['candidates'][0]['content']['parts'] ?? [];
                 $b64 = null;
 
@@ -208,31 +202,29 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
                 }
 
                 if ($b64) {
-                    // Re-package the data EXACTLY matching the DALL-E (OpenAI) structure
-                    // This allows the rest of the plugin to process Google's response seamlessly
+                    // Repackage to match DALL-E format
                     $rawResponse = json_encode([
                         "data" => [
                             ["b64_json" => $b64]
                         ]
                     ]);
                 } else {
-                    // --- NEW: Handle cases where Gemini blocks content for safety but returns HTTP 200 ---
+                    // Handle Gemini safety blocks (HTTP 200 without image data)
                     error_log("AIPic Plugin Error - Gemini blocked the content or did not return an image: " . $rawResponse);
-
-                    // Use a language key instead of a hardcoded string
                     $genericError = [
                         "error" => true,
                         "error_key" => "err_api_safety"
                     ];
                     $rawResponse = json_encode($genericError);
                 }
-            } // End of Google API output translation block
+            }
 
             $this->response = $rawResponse;
             return $this->response;
         }
         return false;
     }
+
     public function getHeader(): array {
         return $this->header;
     }
