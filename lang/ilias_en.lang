@@ -110,3 +110,6 @@ component_aligment#:#Alignment
 component_left#:#Left
 component_center#:#Center
 component_right#:#Right
+err_api_connection#:#The image could not be generated. The text may not comply with usage policies, or there may be a temporary connection issue. Please modify your prompt and try again. Contact the administrator for details.
+err_api_safety#:#The artificial intelligence has refused to generate this image due to safety policies. Contact the administrator for details.
+err_contact_admin#:#An error occurred while processing the generated image. Please try again later. Contact the administrator for details.

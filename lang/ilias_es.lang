@@ -110,3 +110,6 @@ component_aligment#:#Alineación
 component_left#:#Izquierda
 component_center#:#Centro
 component_right#:#Derecha
+err_api_connection#:#No se pudo generar la imagen. Es posible que el texto no cumpla con las políticas de uso o haya un problema temporal de conexión. Por favor, modifique su petición y vuelva a intentarlo. Contacte con el administrador para más detalles.
+err_api_safety#:#La inteligencia artificial ha rechazado generar esta imagen por sus políticas de seguridad. Contacte con el administrador para más detalles.
+err_contact_admin#:#Ha ocurrido un error al procesar la imagen generada. Por favor, inténtelo más tarde. Contacte con el administrador para más detalles.

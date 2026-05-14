@@ -64,6 +64,7 @@ function resendForm(url, urlBase) {
     let associatedFileInput = null;
     const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').last()[0];
 
+    // Clear any previous global messages before starting a new request
     clearMessage();
 
     if (dropzoneVisualElement) {
@@ -98,28 +99,30 @@ function resendForm(url, urlBase) {
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
 
+            // --- START: JSON PARSER SAFEGUARD ---
+            // Ensure the backend response is treated as a JavaScript Object, not a String
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.warn("AIPic Parse Warning: Response is not valid JSON", e);
+                }
+            }
+            // --- END: JSON PARSER SAFEGUARD ---
+
             // --- START: BASE64 INTERCEPTOR ---
-            // Recover the image if the backend failed and returned the JSON within an error string
             if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
                 try {
-                    // 1. Extract the valid JSON portion from the error string using a Regular Expression
                     const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
-
                     if (jsonStringMatch) {
-                        // 2. Parse the raw text into a manageable JavaScript object
                         const rawJson = JSON.parse(jsonStringMatch[0]);
-
-                        // 3. Navigate the OpenAI response structure to extract the Base64 image string
                         const b64String = rawJson.data[0].b64_json;
-
-                        // 4. Construct the payload exactly as the getImageBlob() function expects it
                         data.image = {
                             mode: 'base64',
                             value: b64String,
                             mime: 'image/png'
                         };
-
-                        // 5. Remove the error flag to allow the execution flow to proceed normally
+                        // Delete the Error property so it doesn't trigger the UI error block below
                         delete data.Error;
                     }
                 } catch (e) {
@@ -128,12 +131,54 @@ function resendForm(url, urlBase) {
             }
             // --- END: BASE64 INTERCEPTOR ---
 
-            // Catch AI moderation filter rejections
-            if (data && data.Error) {
-                console.log("Raw AI response:", data.Motivo_Real_IA);
-                let errorMsg = data.Motivo_Real_IA ? ` (${data.Motivo_Real_IA})` : "";
-                throw new Error("AI Model rejected the prompt or returned no image. " + data.Error + errorMsg);
+            // --- START: NEW ROBUST ERROR HANDLING FOR UI ---
+            let apiErrorMsg = null;
+
+            // Check if the backend sent the error as a direct object property
+            if (data && data.error === true && data.message) {
+                apiErrorMsg = data.message;
             }
+            // Check if the ILIAS controller wrapped our JSON inside the "data.Error" string property
+            else if (data && data.Error) {
+                if (typeof data.Error === 'string') {
+                    try {
+                        const parsedStr = JSON.parse(data.Error);
+                        // Extract our custom friendly message
+                        if (parsedStr && parsedStr.error === true && parsedStr.message) {
+                            apiErrorMsg = parsedStr.message;
+                        } else {
+                            // Fallback to raw string if it's a different JSON error
+                            apiErrorMsg = data.Error;
+                        }
+                    } catch (e) {
+                        // Fallback to raw string if it's plain text and not JSON
+                        apiErrorMsg = data.Error;
+                    }
+                } else if (data.Error.message) {
+                    apiErrorMsg = data.Error.message;
+                } else {
+                    apiErrorMsg = "An unknown error occurred in the AI integration.";
+                }
+            }
+
+            // If we captured any error, display it and halt execution
+            if (apiErrorMsg) {
+                loadingSpinner.style.display = "none";
+                setDisableFormControls(false);
+                generateButton.text(originalButtonText);
+                setDisableSendbuttons(false, false);
+
+                displayMessage(`
+                  <div class="alert alert-danger" role="alert">
+                    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+                    ${apiErrorMsg}
+                  </div>
+                `);
+
+                return; // Crucial: Stop execution here to prevent getImageBlob from crashing
+            }
+            // --- END: NEW ROBUST ERROR HANDLING FOR UI ---
+
             const downloadButton = document.getElementById("downloadButton");
             const imgDiv = document.getElementById("imageDiv");
 
@@ -173,10 +218,15 @@ function resendForm(url, urlBase) {
                 setDisableSendbuttons(false, false);
                 setDisableFormControls(false);
                 generateButton.text(originalButtonText);
+
+                // --- MODIFIED: Read the dynamic translation from the DOM attribute injected via PHP ---
+                const redirectBtnEl = $("#redirectButton");
+                let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred while processing the image. Please contact the administrator.";
+
                 displayMessage(`
                   <div class="alert alert-danger" role="alert">
                     <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
-                     An error occurred while processing the generated image. Please try again later. Check the console for details.
+                     ${adminErrorText}
                   </div>
                 `);
                 return;
@@ -351,11 +401,13 @@ function displayMessage(htmlMessage) {
 
     const focusLink = $messageArea.find('a[name="il_message_focus"]');
     if (focusLink.length) {
+
         focusLink.focus();
     }
 }
 
 function clearMessage() {
+    // Clear global messages natively
     const $messageArea = $("#global-message-area");
     if ($messageArea.length) {
         $messageArea.empty().hide();
