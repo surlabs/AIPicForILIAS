@@ -143,7 +143,6 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
             $bodyRequest = json_encode($this->getBody());
             $fullPrompt = $this->promptContext . " " . $prompt;
 
-            // Format payload for Google Gemini API
             if (str_contains($this->url, 'googleapis.com')) {
                 $bodyRequest = json_encode([
                     "contents" => [
@@ -185,7 +184,6 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
                 return $this->response;
             }
 
-            // Normalize Google Gemini response to match plugin architecture
             if (str_contains($this->url, 'googleapis.com') && is_string($rawResponse)) {
                 $decoded = json_decode($rawResponse, true);
                 $parts = $decoded['candidates'][0]['content']['parts'] ?? [];
