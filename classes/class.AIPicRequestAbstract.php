@@ -19,10 +19,11 @@ declare(strict_types=1);
  *
  */
 
- /**
+/**
  * Class AIPicRequestAbstract
  * @authors Sergio Santiago, Abraham Morales <info@surlabs.com>
  */
+
 
 abstract class AIPicRequestAbstract implements AIPicRequestInterface
 {
@@ -79,7 +80,18 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
         $res = [];
         if(isset($this->response)) {
             $responseDecoded = $this->response ? json_decode($this->response, true): [];
-            $res = $responseDecoded[$this->responseKey];
+
+            if (!is_array($responseDecoded)) {
+                return $res;
+            }
+
+            if ($this->responseKey !== '' && array_key_exists($this->responseKey, $responseDecoded)) {
+                $res = $responseDecoded[$this->responseKey];
+            } elseif ($this->responseSubkey !== null && array_key_exists($this->responseSubkey, $responseDecoded)) {
+                $res = [[
+                    $this->responseSubkey => $responseDecoded[$this->responseSubkey]
+                ]];
+            }
         }
         return $res;
     }
@@ -88,27 +100,125 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
         $data = $this->getDataArray();
         $imagesUrls = [];
         if(isset($this->responseSubkey)) {
-            foreach($data as $image) {
-                $imagesUrls[] = $image[$this->responseSubkey];
+            if (!is_array($data)) {
+                return $imagesUrls;
             }
-        } else {
+
+            foreach($data as $image) {
+                if (is_array($image) && array_key_exists($this->responseSubkey, $image)) {
+                    $imagesUrls[] = $image[$this->responseSubkey];
+                }
+            }
+        } elseif (!is_array($data) || array_is_list($data)) {
             $imagesUrls[] = $data;
+        } else {
+            $imagesUrls[] = json_encode($data);
         }
 
         return $imagesUrls;
+    }
+
+    public function getImagesPayloadArray(): array
+    {
+        $images = [];
+
+        foreach ($this->getImagesUrlsArray() as $value) {
+            if (!is_string($value) || trim($value) === '') {
+                continue;
+            }
+
+            $mode = filter_var($value, FILTER_VALIDATE_URL) ? 'url' : 'base64';
+            $images[] = [
+                'mode' => $mode,
+                'value' => $value,
+                'mime' => $mode === 'base64' ? 'image/png' : null,
+            ];
+        }
+
+        return $images;
     }
 
     public function sendPrompt(string $prompt): bool|string {
         if(strlen($prompt) > 0) {
             $this->body[$this->requestPromptKey] = $this->promptContext. " " . $prompt;
             $bodyRequest = json_encode($this->getBody());
+            $fullPrompt = $this->promptContext . " " . $prompt;
+
+            if (str_contains($this->url, 'googleapis.com')) {
+                $bodyRequest = json_encode([
+                    "contents" => [
+                        [
+                            "parts" => [
+                                ["text" => $fullPrompt]
+                            ]
+                        ]
+                    ]
+                ]);
+            } else {
+                $this->body[$this->requestPromptKey] = $fullPrompt;
+                $bodyRequest = json_encode($this->getBody());
+            }
 
             curl_setopt($this->ch, CURLOPT_URL, $this->url);
             curl_setopt($this->ch, CURLOPT_POST, true);
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $bodyRequest);
             curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->header);
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
-            $this->response = curl_exec($this->ch);
+            curl_setopt($this->ch, CURLOPT_TIMEOUT, 120);
+
+            $rawResponse = curl_exec($this->ch);
+            $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($this->ch);
+
+            // Handle network or API errors silently
+            if ($rawResponse === false || $httpCode >= 400) {
+                $realError = $rawResponse !== false ? $rawResponse : $curlError;
+                error_log("AIPic Plugin Error (HTTP $httpCode) - Real IA Reason: " . $realError);
+
+                // Return i18n key for UI
+                $genericError = [
+                    "error" => true,
+                    "error_key" => "err_api_connection"
+                ];
+
+                $this->response = json_encode($genericError);
+                return $this->response;
+            }
+
+            if (str_contains($this->url, 'googleapis.com') && is_string($rawResponse)) {
+                $decoded = json_decode($rawResponse, true);
+                $parts = $decoded['candidates'][0]['content']['parts'] ?? [];
+                $b64 = null;
+
+                foreach($parts as $part) {
+                    if (isset($part['inlineData']['data'])) {
+                        $b64 = $part['inlineData']['data'];
+                        break;
+                    } elseif (isset($part['inline_data']['data'])) {
+                        $b64 = $part['inline_data']['data'];
+                        break;
+                    }
+                }
+
+                if ($b64) {
+                    // Repackage to match DALL-E format
+                    $rawResponse = json_encode([
+                        "data" => [
+                            ["b64_json" => $b64]
+                        ]
+                    ]);
+                } else {
+                    // Handle Gemini safety blocks (HTTP 200 without image data)
+                    error_log("AIPic Plugin Error - Gemini blocked the content or did not return an image: " . $rawResponse);
+                    $genericError = [
+                        "error" => true,
+                        "error_key" => "err_api_safety"
+                    ];
+                    $rawResponse = json_encode($genericError);
+                }
+            }
+
+            $this->response = $rawResponse;
             return $this->response;
         }
         return false;

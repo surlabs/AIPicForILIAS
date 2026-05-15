@@ -1,33 +1,32 @@
-// Manage the disposition of the generate image button
-$("#redirectButton")
-    .appendTo($(".ui-input-textarea").parent())
-    .width("100%")
-    .children()
-    .css("margin-bottom", "10px")
-    .css("width", "100%")
-    .css("width", "100%");
-
-// Form elements selectors
-const prompt = $("fieldset .c-input__field textarea");
-const styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
-const generateButton = $("#redirectButton button");
-const loadingSpinner = document.getElementById("loadingSpinner");
-const sendButton = $('.il-standard-form-cmd button');
-const widthInput = $('input[name="AIPicForm/input_6/input_11"]');
-const alignmentButtons = $('.aipic-btn-container button');
-const finalPromptDisplay = $('#final-prompt-container input');
+let prompt, styleSelect, generateButton, loadingSpinner, sendButton, widthInput, alignmentButtons, finalPromptDisplay;
 let originalButtonText = '';
-
+let currentGeneratedImageUrl = null;
 
 document.addEventListener("DOMContentLoaded", function () {
+    prompt = $("fieldset .c-input__field textarea");
+    styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
+    generateButton = $("#redirectButton button");
+    loadingSpinner = document.getElementById("loadingSpinner");
+    sendButton = $('.il-standard-form-cmd button');
+    widthInput = $('input[name="AIPicForm/input_6/input_11"]');
+    alignmentButtons = $('.aipic-btn-container button');
+    finalPromptDisplay = $('#final-prompt-container input');
+
+    $("#redirectButton").appendTo(
+        $("label").filter(function() {
+            return /Select style|Seleccionar estilo|Stil auswhlen/.test($(this).text());
+        }).closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10")
+    ).width("100%").children().css({ "margin-bottom": "10px", "width": "100%" });
+
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
 
     const redirectButtonDiv = $("#redirectButton");
     const txtGenerate = redirectButtonDiv.data("txt-generate");
+
     if (txtGenerate) {
         originalButtonText = txtGenerate;
         generateButton.text(originalButtonText);
-    }else{
+    } else {
         originalButtonText = generateButton.text();
     }
 
@@ -35,46 +34,46 @@ document.addEventListener("DOMContentLoaded", function () {
     prompt.on("input", updateFinalPromptDisplay);
     styleSelect.on("change", updateFinalPromptDisplay);
 
-    prompt.on("input", checkChanges);
     $('input[name="AIPicForm/input_6/input_11"]').on("input", () => {
         checkChanges();
-        changeSize();
+        if (typeof changeSize === "function") changeSize();
     });
-    $('select[name="AIPicForm/input_6/input_10"]').on("input", changePosition);
+
+    if (typeof changePosition === "function") {
+        $('select[name="AIPicForm/input_6/input_10"]').on("input", changePosition);
+    }
 
     $('#imageDiv img[alt="Generated_image"]').css('width', '50%');
-    changePosition();
-    changeSize();
+    if (typeof changePosition === "function") changePosition();
+    if (typeof changeSize === "function") changeSize();
+
     checkChanges();
     updateFinalPromptDisplay();
 });
 
-
 function resendForm(url, urlBase) {
-
     const promptValue = setPromptStyle(prompt.val(), styleSelect.val());
-
     let dzInstance = null;
     let associatedFileInput = null;
     const dropzoneVisualElement = $('.ui-input-file .ui-input-file-input-dropzone').last()[0];
+
     clearMessage();
+
     if (dropzoneVisualElement) {
         const parentUiInputFile = dropzoneVisualElement.closest('.ui-input-file');
-
         if (Dropzone.instances && Dropzone.instances.length > 0) {
             dzInstance = Dropzone.instances.find(dz => dz.element === dropzoneVisualElement || (dz.hiddenFileInput && dz.hiddenFileInput.closest('.ui-input-file') === parentUiInputFile));
         }
     }
+
     if (!associatedFileInput && dropzoneVisualElement) {
         const parent = dropzoneVisualElement.closest('.ui-input-file');
         if (parent) associatedFileInput = parent.querySelector('input[type="file"]');
     }
 
-    const resetButton = $('.glyphicon.glyphicon-remove')
+    const resetButton = $('.glyphicon.glyphicon-remove');
+    if (resetButton.length) resetButton.click();
 
-    if (resetButton) {
-        resetButton.click();
-    }
     if (associatedFileInput) {
         associatedFileInput.value = "";
         associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
@@ -89,34 +88,79 @@ function resendForm(url, urlBase) {
 
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
+
+            // Parse string response
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.warn("AIPic Parse Warning", e);
+                }
+            }
+
+            // Recover Base64 payload if hidden inside error string
+            if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
+                try {
+                    const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
+                    if (jsonStringMatch) {
+                        const rawJson = JSON.parse(jsonStringMatch[0]);
+                        data.image = { mode: 'base64', value: rawJson.data[0].b64_json, mime: 'image/png' };
+                        delete data.Error;
+                    }
+                } catch (e) {
+                    console.error("Failed to recover Base64 payload:", e);
+                }
+            }
+
+            // Handle managed AI or network errors
+            let apiErrorMsg = null;
+            if (data && data.error === true && data.message) {
+                apiErrorMsg = data.message;
+            } else if (data && data.Error) {
+                if (typeof data.Error === 'string') {
+                    try {
+                        const parsedStr = JSON.parse(data.Error);
+                        apiErrorMsg = (parsedStr && parsedStr.error === true && parsedStr.message) ? parsedStr.message : data.Error;
+                    } catch (e) {
+                        apiErrorMsg = data.Error;
+                    }
+                } else if (data.Error.message) {
+                    apiErrorMsg = data.Error.message;
+                } else {
+                    apiErrorMsg = "Unknown AI integration error.";
+                }
+            }
+
+            if (apiErrorMsg) {
+                loadingSpinner.style.display = "none";
+                setDisableFormControls(false);
+                generateButton.text(originalButtonText);
+                setDisableSendbuttons(false, false);
+
+                displayMessage(`
+                  <div class="alert alert-danger" role="alert">
+                    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+                    ${apiErrorMsg}
+                  </div>
+                `);
+                return;
+            }
+
             const downloadButton = document.getElementById("downloadButton");
             const imgDiv = document.getElementById("imageDiv");
 
             try {
-                const currentUrl = new URL(urlBase, window.location.origin);
-                currentUrl.searchParams = new URLSearchParams(window.location.search);
-                currentUrl.searchParams.delete("urlDownload");
-                currentUrl.searchParams.set("urlDownload", encodeURI(data.image));
-                currentUrl.searchParams.delete("methodDesired");
-                currentUrl.searchParams.set("methodDesired", "downloadImage");
+                const imagePayload = data && data.image ? data.image : null;
+                const blob = await getImageBlob(imagePayload, urlBase);
+                const fileExtension = getFileExtension(blob.type || 'image/png');
+                const file = new File([blob], `generated_image.${fileExtension}`, {type: blob.type || 'image/png'});
+                const previewUrl = URL.createObjectURL(blob);
 
-                const fetchUrl = currentUrl.pathname + "?" + currentUrl.searchParams.toString();
-                const response = await fetch(fetchUrl);
-
-                const blob = await response.blob();
-                const file = new File([blob], "generated_image.png", {type: blob.type || 'image/png'});
+                if (currentGeneratedImageUrl) URL.revokeObjectURL(currentGeneratedImageUrl);
+                currentGeneratedImageUrl = previewUrl;
 
                 if (dzInstance) {
                     dzInstance.addFile(file);
-                    if (dzInstance.files.includes(file) || dzInstance.files.some(f => f.name === file.name && f.size === file.size)) {
-                    } else {
-                        if (associatedFileInput) {
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            associatedFileInput.files = dataTransfer.files;
-                            associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
-                        }
-                    }
                 } else if (associatedFileInput) {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
@@ -125,34 +169,36 @@ function resendForm(url, urlBase) {
                 } else if (dropzoneVisualElement && typeof Dropzone !== 'undefined') {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
-                    dropzoneVisualElement.dispatchEvent(new DragEvent('dragenter', {
-                        bubbles: true,
-                        cancelable: true,
-                        dataTransfer
-                    }));
-                    dropzoneVisualElement.dispatchEvent(new DragEvent('dragover', {
-                        bubbles: true,
-                        cancelable: true,
-                        dataTransfer
-                    }));
-                    dropzoneVisualElement.dispatchEvent(new DragEvent('drop', {
-                        bubbles: true,
-                        cancelable: true,
-                        dataTransfer
-                    }));
+                    ['dragenter', 'dragover', 'drop'].forEach(eventName => {
+                        dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer }));
+                    });
                 }
 
             } catch (error) {
+                console.error("AIPic Debug Error:", error);
                 loadingSpinner.style.display = "none";
                 setDisableSendbuttons(false, false);
                 setDisableFormControls(false);
                 generateButton.text(originalButtonText);
-                setDisableSendbuttons(false, false);
+
+                // Fetch dynamic i18n translation
+                const redirectBtnEl = $("#redirectButton");
+                let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred. Please contact the administrator.";
+
+                displayMessage(`
+                  <div class="alert alert-danger" role="alert">
+                    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+                     ${adminErrorText}
+                  </div>
+                `);
+                return;
             }
 
-            if (imgDiv && imgDiv.children && imgDiv.children.length > 1 && imgDiv.children[1].tagName === 'IMG') {
-                imgDiv.children[1].src = data.image;
+            if (imgDiv) {
+                const targetImg = $(imgDiv).find('img[alt="Generated_image"]');
+                if (targetImg.length) targetImg.attr('src', currentGeneratedImageUrl);
             }
+
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
                 setDisableFormControls(false);
@@ -165,6 +211,7 @@ function resendForm(url, urlBase) {
 
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
+            console.error("AIPic Network Fail:", textStatus, errorThrown);
             setDisableSendbuttons(false, false);
             setTimeout(() => {
                 loadingSpinner.style.display = "none";
@@ -174,81 +221,104 @@ function resendForm(url, urlBase) {
             }, 1500);
 
             displayMessage(`
-  <div class="alert alert-danger" role="alert">
-    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
-     An error occurred while generating the image. Please check the API configuration or try again later.
-  </div>
-`);
+              <div class="alert alert-danger" role="alert">
+                <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+                 An error occurred while communicating with the server. Please check your connection.
+              </div>
+            `);
         });
+}
+
+async function getImageBlob(imagePayload, urlBase) {
+    if (!imagePayload || !imagePayload.mode || !imagePayload.value) throw new Error('Invalid image payload structure');
+    if (imagePayload.mode === 'base64') return base64ToBlob(imagePayload.value, imagePayload.mime || 'image/png');
+
+    if (imagePayload.mode === 'url') {
+        const currentUrl = new URL(urlBase, window.location.origin);
+        currentUrl.search = window.location.search;
+        currentUrl.searchParams.delete("urlDownload");
+        currentUrl.searchParams.set("urlDownload", encodeURIComponent(imagePayload.value));
+        currentUrl.searchParams.delete("methodDesired");
+        currentUrl.searchParams.set("methodDesired", "downloadImage");
+
+        const fetchUrl = currentUrl.pathname + "?" + currentUrl.searchParams.toString();
+        const response = await fetch(fetchUrl);
+
+        if (!response.ok) throw new Error(`Error downloading image from URL. HTTP Status: ${response.status}`);
+        return response.blob();
+    }
+
+    throw new Error('Unsupported image payload mode: ' + imagePayload.mode);
+}
+
+function base64ToBlob(base64Value, mimeType) {
+    let cleanBase64 = base64Value.replace(/\s/g, '');
+    if (cleanBase64.includes(',')) cleanBase64 = cleanBase64.split(',')[1];
+
+    const byteCharacters = atob(cleanBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    return new Blob([new Uint8Array(byteNumbers)], {type: mimeType});
+}
+
+function getFileExtension(mimeType) {
+    const extensionMap = {
+        'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp'
+    };
+    return extensionMap[mimeType] || 'png';
 }
 
 function setPromptStyle(userPrompt, style) {
     const styleMap = {
-        minimal:
-            "minimal style, flat shapes, soft gradients, clean composition, limited color palette, focus on negative space, simple design",
-        realistic:
-            "realistic style, photorealistic rendering, high detail, natural lighting, accurate shadows, realistic textures, lifelike atmosphere",
-        artistic:
-            "artistic style, expressive strokes, creative lighting, stylized forms, surreal interpretation, painterly textures, vibrant mood",
-        anime:
-            "anime style, clean lines, cel shading, expressive faces, colorful background, exaggerated proportions, Japanese animation style",
-        vintage:
-            "vintage style, sepia tones, old film grain, retro color grading, nostalgic atmosphere, soft focus, 20th century aesthetic",
-        cartoon:
-            "cartoon style, bold outlines, flat colors, exaggerated features, playful expressions, simplified shapes, vibrant palette, animated look",
+        minimal: "minimal style, flat shapes, soft gradients, clean composition, limited color palette, focus on negative space, simple design",
+        realistic: "realistic style, photorealistic rendering, high detail, natural lighting, accurate shadows, realistic textures, lifelike atmosphere",
+        artistic: "artistic style, expressive strokes, creative lighting, stylized forms, surreal interpretation, painterly textures, vibrant mood",
+        anime: "anime style, clean lines, cel shading, expressive faces, colorful background, exaggerated proportions, Japanese animation style",
+        vintage: "vintage style, sepia tones, old film grain, retro color grading, nostalgic atmosphere, soft focus, 20th century aesthetic",
+        cartoon: "cartoon style, bold outlines, flat colors, exaggerated features, playful expressions, simplified shapes, vibrant palette, animated look",
     };
 
     const styleDesc = styleMap[style] || "";
-
-    if (!styleDesc.trim()) {
-        return userPrompt.trim();
-    }
-
-    return `${userPrompt.trim()}, ${styleDesc}`;
+    return styleDesc.trim() ? `${userPrompt.trim()}, ${styleDesc}` : userPrompt.trim();
 }
 
 function isWidthInputEmpty() {
-    let res = true;
-    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val().trim();
-
-    if (inputValue !== "" && !isNaN(inputValue)) {
-        res = false;
-    }
-    return res;
+    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val()?.trim() || "";
+    return !(inputValue !== "" && !isNaN(inputValue));
 }
 
 function setDisableSendbuttons(disableGen, disableSend) {
     setTimeout(() => {
-        if (disableGen) {
-            generateButton.prop("disabled", true);
-        } else {
-            generateButton.prop("disabled", false);
-        }
-
-        if (disableSend) {
-            sendButton.attr("disabled", true);
-        } else {
-            sendButton.prop("disabled", false);
-        }
+        if (generateButton && generateButton.length) generateButton.prop("disabled", disableGen);
+        if (sendButton && sendButton.length) sendButton.prop("disabled", disableSend);
     }, 50);
 }
 
 function setDisableFormControls(disabled) {
-    prompt.prop('disabled', disabled);
-    styleSelect.prop('disabled', disabled);
-    widthInput.prop('disabled', disabled);
+    if(prompt) prompt.prop('disabled', disabled);
+    if(styleSelect) styleSelect.prop('disabled', disabled);
+    if(widthInput) widthInput.prop('disabled', disabled);
     $('#aipic_slider').prop('disabled', disabled);
     $('.aipic-btn-container button').prop('disabled', disabled);
 }
 
 function checkChanges() {
     const imgDiv = document.getElementById("imageDiv");
-    const img = imgDiv.children[1];
-    const imgEmptyOrDefault = !img || img.src === "" || img.src.includes("placeholder");
-    const promptEmpty = prompt.val().length === 0 || loadingSpinner.style.display === "block";
-    const anyEmpty = promptEmpty || isWidthInputEmpty();
+    let imgEmptyOrDefault = true;
 
-    setDisableSendbuttons(anyEmpty, imgEmptyOrDefault);
+    if (imgDiv) {
+        const targetImg = $(imgDiv).find('img[alt="Generated_image"]')[0];
+        if (targetImg && targetImg.src !== "" && !targetImg.src.includes("placeholder")) imgEmptyOrDefault = false;
+    }
+
+    const isSpinnerVisible = loadingSpinner ? loadingSpinner.style.display === "block" : false;
+    const promptEmpty = prompt ? prompt.val().length === 0 : true;
+
+    setDisableSendbuttons(promptEmpty || isSpinnerVisible || isWidthInputEmpty(), imgEmptyOrDefault);
 }
 
 function displayMessage(htmlMessage) {
@@ -260,21 +330,16 @@ function displayMessage(htmlMessage) {
     $messageArea.html(htmlMessage).show();
 
     const focusLink = $messageArea.find('a[name="il_message_focus"]');
-    if (focusLink.length) {
-        focusLink.focus();
-    }
+    if (focusLink.length) focusLink.focus();
 }
 
 function clearMessage() {
     const $messageArea = $("#global-message-area");
-    if ($messageArea.length) {
-        $messageArea.empty().hide();
-    }
+    if ($messageArea.length) $messageArea.empty().hide();
 }
 
 function updateFinalPromptDisplay() {
-    const userPrompt = prompt.val();
-    const style = styleSelect.val();
-    const finalPrompt = setPromptStyle(userPrompt, style);
-    finalPromptDisplay.val(finalPrompt);
+    if(prompt && styleSelect && finalPromptDisplay) {
+        finalPromptDisplay.val(setPromptStyle(prompt.val(), styleSelect.val()));
+    }
 }
