@@ -128,15 +128,10 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
                 throw new Exception("Failed to move uploaded file to MediaObject directory");
             }
 
-            $mediaItem = new ilMediaItem();
-            $mob->addMediaItem($mediaItem);
-            $mediaItem->setPurpose("Standard");
+            // Register and copy the file into the IRSS container natively
+            $mediaItem = $mob->addMediaItemFromLocalFile("Standard", $file_path, $file_name);
             $mediaItem->setNr(1);
-            $mediaItem->setFormat($result->getMimeType());
-            $mediaItem->setLocation($file_name);
-            $mediaItem->setLocationType("LocalFile");
-            $mediaItem->setMobId($mob->getId());
-            $mediaItem->create();
+            $mob->update();
 
             $status = HandlerResult::STATUS_OK;
             $identifier = (string)$mob->getId();

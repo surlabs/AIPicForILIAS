@@ -3,20 +3,33 @@ let originalButtonText = '';
 let currentGeneratedImageUrl = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-    prompt = $("fieldset .c-input__field textarea");
-    styleSelect = $('select[name="AIPicForm/input_6/input_9"]');
+    const allTextareas = $("textarea");
+    const allSelects = $("select");
+
+    prompt = allTextareas.eq(0);
+    styleSelect = allSelects.eq(0);
+
+    // Capture width input
+    widthInput = $("input[type='number']");
+    if(widthInput.length === 0) {
+        widthInput = $("input.form-control").eq(1);
+    }
+
     generateButton = $("#redirectButton button");
     loadingSpinner = document.getElementById("loadingSpinner");
-    sendButton = $('.il-standard-form-cmd button');
-    widthInput = $('input[name="AIPicForm/input_6/input_11"]');
-    alignmentButtons = $('.aipic-btn-container button');
+    sendButton = $('.il-standard-form-cmd button, .ilSubmitButton');
     finalPromptDisplay = $('#final-prompt-container input');
 
-    $("#redirectButton").appendTo(
-        $("label").filter(function() {
+    setTimeout(() => {
+        const targetLabel = $("label").filter(function() {
             return /Select style|Seleccionar estilo|Stil auswhlen/.test($(this).text());
-        }).closest(".form-group").find(".col-sm-8.col-md-9.col-lg-10")
-    ).width("100%").children().css({ "margin-bottom": "10px", "width": "100%" });
+        });
+
+        if (targetLabel.length > 0) {
+            $("#redirectButton").appendTo(targetLabel.closest(".form-group, .il-margin-bottom").find(".col-sm-8.col-md-9.col-lg-10, .il-prop-val"))
+                .width("100%").children().css({ "margin-bottom": "10px", "width": "100%" });
+        }
+    }, 100);
 
     $(".ui-input-file-input-dropzone, .ui-input-file").hide();
 
@@ -34,21 +47,75 @@ document.addEventListener("DOMContentLoaded", function () {
     prompt.on("input", updateFinalPromptDisplay);
     styleSelect.on("change", updateFinalPromptDisplay);
 
-    $('input[name="AIPicForm/input_6/input_11"]').on("input", () => {
-        checkChanges();
-        if (typeof changeSize === "function") changeSize();
-    });
+    // --- LIVE PREVIEW ENGINE (SIZE & ALIGNMENT) ---
 
-    if (typeof changePosition === "function") {
-        $('select[name="AIPicForm/input_6/input_10"]').on("input", changePosition);
+    function updateLivePreview() {
+        const previewImg = $('#imageDiv img[alt="Generated_image"]');
+        if(previewImg.length === 0) return;
+
+        let sizeVal = widthInput.val();
+        if(sizeVal && !isNaN(sizeVal)) {
+            previewImg.css({
+                'width': sizeVal + '%',
+                'max-width': '100%',
+                'height': 'auto',
+                'transition': 'width 0.2s ease-out' // Smooth transition
+            });
+        }
     }
 
-    $('#imageDiv img[alt="Generated_image"]').css('width', '50%');
-    if (typeof changePosition === "function") changePosition();
-    if (typeof changeSize === "function") changeSize();
+    // 1. Connect numeric input
+    widthInput.on("input", function() {
+        updateLivePreview();
+        checkChanges();
+    });
 
+    // 2. Connect ILIAS range slider
+    $(document).on("input change", "input[type='range']", function() {
+        if(widthInput.length) widthInput.val($(this).val());
+        updateLivePreview();
+        checkChanges();
+    });
+
+    // 3. Connect alignment buttons
+    $(document).on("click", "button", function() {
+        const icon = $(this).find('span[class*="align"], img[src*="align"]');
+        if (icon.length > 0) {
+            let align = 'center';
+            const iconClass = icon.attr('class') ? icon.attr('class').toLowerCase() : '';
+            const iconSrc = icon.attr('src') ? icon.attr('src').toLowerCase() : '';
+
+            if (iconClass.includes('left') || iconSrc.includes('left')) align = 'left';
+            if (iconClass.includes('right') || iconSrc.includes('right')) align = 'right';
+
+            $('#imageDiv').css({
+                'text-align': align,
+                'display': 'block',
+                'width': '100%',
+                'transition': 'text-align 0.3s ease'
+            });
+        }
+    });
+
+    // 4. Fallback for classic select element
+    const alignSelect = $("select").filter(function() { return $(this).attr('name') && $(this).attr('name').toLowerCase().includes('align'); });
+    if(alignSelect.length) {
+        alignSelect.on("change", function() {
+            $('#imageDiv').css({ 'text-align': $(this).val().toLowerCase(), 'display': 'block', 'width': '100%' });
+        });
+    }
+
+    // Initialize preview
+    updateLivePreview();
     checkChanges();
     updateFinalPromptDisplay();
+
+    // Hide native ILIAS "Advanced Settings" link
+    setInterval(function() {
+        $("a").filter(function() {
+            return /Advanced Settings|Ajustes avanzados|Erweiterte Einstellungen/.test($(this).text());
+        }).hide();
+    }, 500);
 });
 
 function resendForm(url, urlBase) {
@@ -88,8 +155,6 @@ function resendForm(url, urlBase) {
 
     $.post(url, {prompt: promptValue})
         .done(async function (data) {
-
-            // Parse string response
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
@@ -98,7 +163,6 @@ function resendForm(url, urlBase) {
                 }
             }
 
-            // Recover Base64 payload if hidden inside error string
             if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
                 try {
                     const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
@@ -112,7 +176,6 @@ function resendForm(url, urlBase) {
                 }
             }
 
-            // Handle managed AI or network errors
             let apiErrorMsg = null;
             if (data && data.error === true && data.message) {
                 apiErrorMsg = data.message;
@@ -181,7 +244,6 @@ function resendForm(url, urlBase) {
                 setDisableFormControls(false);
                 generateButton.text(originalButtonText);
 
-                // Fetch dynamic i18n translation
                 const redirectBtnEl = $("#redirectButton");
                 let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred. Please contact the administrator.";
 
@@ -196,7 +258,11 @@ function resendForm(url, urlBase) {
 
             if (imgDiv) {
                 const targetImg = $(imgDiv).find('img[alt="Generated_image"]');
-                if (targetImg.length) targetImg.attr('src', currentGeneratedImageUrl);
+                if (targetImg.length) {
+                    targetImg.attr('src', currentGeneratedImageUrl);
+                    // Trigger forced resize
+                    setTimeout(() => { widthInput.trigger('input'); }, 50);
+                }
             }
 
             setTimeout(() => {
@@ -287,7 +353,7 @@ function setPromptStyle(userPrompt, style) {
 }
 
 function isWidthInputEmpty() {
-    const inputValue = $('input[name="AIPicForm/input_6/input_11"]').val()?.trim() || "";
+    const inputValue = widthInput.val()?.trim() || "";
     return !(inputValue !== "" && !isNaN(inputValue));
 }
 
@@ -302,8 +368,8 @@ function setDisableFormControls(disabled) {
     if(prompt) prompt.prop('disabled', disabled);
     if(styleSelect) styleSelect.prop('disabled', disabled);
     if(widthInput) widthInput.prop('disabled', disabled);
-    $('#aipic_slider').prop('disabled', disabled);
-    $('.aipic-btn-container button').prop('disabled', disabled);
+    $('input[type="range"]').prop('disabled', disabled);
+    $('.aipic-btn-container button, .btn-group button').prop('disabled', disabled);
 }
 
 function checkChanges() {
