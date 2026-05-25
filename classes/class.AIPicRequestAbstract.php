@@ -32,7 +32,7 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
     protected array $body = [];
     protected string $promptContext = "";
     protected string $url;
-    protected string|bool|null $response;
+    protected string|bool|null $response = null;
     protected string $requestPromptKey = "prompt";
     protected string $responseKey;
     protected ?string $responseSubkey = null;
@@ -232,10 +232,11 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
         return $this->body;
     }
 
-    public function getResponse(): string|bool|null {
-        return $this->response;
+    public function getResponse(): string
+    {
+        // Return empty string if response is null or false
+        return (string) ($this->response ?? '');
     }
-
     public function getPromptContext(): string
     {
         return $this->promptContext;

@@ -73,15 +73,10 @@ class ilAIPicEditorGUI
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
+    
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
 
-        $aligments = [
-            "center" => $this->plugin->txt("select_aligment_center"),
-            "left" => $this->plugin->txt("select_aligment_left"),
-            "right" => $this->plugin->txt("select_aligment_right")
-        ];
-
-        $styles = [
+        $styles_options = [
             "realistic" => $this->plugin->txt("style_realistic"),
             "artistic" => $this->plugin->txt("style_artistic"),
             "minimal" => $this->plugin->txt("style_minimal"),
@@ -89,14 +84,48 @@ class ilAIPicEditorGUI
             "vintage" => $this->plugin->txt("style_vintage"),
             "cartoon" => $this->plugin->txt("style_cartoon"),
         ];
-
-        $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue("center")->withRequired(true);
-        $styles_select_input = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles, $this->plugin->txt("select_style_image"))->withRequired(false);
-
+        $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image"))->withRequired(false);
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue(50);
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withRequired(true);
 
-        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $styles_select_input, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
+        //  Native Media Object properties
+        $title = $ui->input()->field()->text("Title"); // Opcional: cambiar por $this->plugin->txt("title") en el futuro
+
+        $style_classes = [
+            "MediaContainer" => "MediaContainer",
+            "MediaContainerFull100" => "MediaContainerFull100",
+            "MediaContainerHighlighted" => "MediaContainerHighlighted",
+            "MediaContainerMax50" => "MediaContainerMax50",
+            "MediaContainerSeparated" => "MediaContainerSeparated"
+        ];
+        $styleClass = $ui->input()->field()->select("Style Class", $style_classes)->withValue("MediaContainer");
+
+        $alignments = [
+            "Center" => "Center",
+            "Left" => "Left",
+            "Right" => "Right",
+            "LeftFloat" => "Left, Floating",
+            "RightFloat" => "Right, Floating"
+        ];
+        $selectAligment = $ui->input()->field()->select("Alignment", $alignments)->withValue("Center")->withRequired(true);
+
+        $showFullscreen = $ui->input()->field()->checkbox("Show Fullscreen");
+        $textRepresentation = $ui->input()->field()->text("Text Representation")->withByline("Used for image 'alt' attribute.");
+
+        // Group fields in section
+        $fields = [
+            "prompt" => $prompt,
+            "file" => $file,
+            "styles" => $selecStyle,
+            "widthInput" => $widthInput,
+            "title" => $title,
+            "styleClass" => $styleClass,
+            "aligments" => $selectAligment,
+            "showFullscreen" => $showFullscreen,
+            "textRepresentation" => $textRepresentation
+        ];
+
+        $section1 = $ui->input()->field()->section($fields, $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'saveImage');
         $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "insert");
@@ -110,14 +139,9 @@ class ilAIPicEditorGUI
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
+        // 1. AI generation fields with recovered values
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withValue($properties["prompt"] ?? "")->withRequired(true);
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
-
-        $aligments = [
-            "center" => $this->plugin->txt("select_aligment_center"),
-            "left" => $this->plugin->txt("select_aligment_left"),
-            "right" => $this->plugin->txt("select_aligment_right")
-        ];
 
         $styles_options = [
             "realistic" => $this->plugin->txt("style_realistic"),
@@ -127,12 +151,49 @@ class ilAIPicEditorGUI
             "vintage" => $this->plugin->txt("style_vintage"),
             "cartoon" => $this->plugin->txt("style_cartoon"),
         ];
-
-        $selectAligment = $ui->input()->field()->select($this->plugin->txt("select_aligment"), $aligments, $this->plugin->txt("select_aligment_image_position"))->withValue($properties["aligments"] ?? "center")->withRequired(true);
         $selecStyle = $ui->input()->field()->select($this->plugin->txt("select_style"), $styles_options, $this->plugin->txt("select_style_image"))->withValue($properties["styles"] ?? "realistic")->withRequired(false);
-        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"]);
+        $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue($properties["widthInput"] ?? 50);
 
-        $section1 = $ui->input()->field()->section(["prompt" => $prompt, "file" => $file, "styles" => $selecStyle, "aligments" => $selectAligment, "widthInput" => $widthInput], $this->plugin->txt("configuration"));
+        // 2. Native Media Object properties with recovered values
+        $title = $ui->input()->field()->text("Title")->withValue($properties["title"] ?? "");
+
+        $style_classes = [
+            "MediaContainer" => "MediaContainer",
+            "MediaContainerFull100" => "MediaContainerFull100",
+            "MediaContainerHighlighted" => "MediaContainerHighlighted",
+            "MediaContainerMax50" => "MediaContainerMax50",
+            "MediaContainerSeparated" => "MediaContainerSeparated"
+        ];
+        $styleClass = $ui->input()->field()->select("Style Class", $style_classes)->withValue($properties["styleClass"] ?? "MediaContainer");
+
+        $alignments = [
+            "Center" => "Center",
+            "Left" => "Left",
+            "Right" => "Right",
+            "LeftFloat" => "Left, Floating",
+            "RightFloat" => "Right, Floating"
+        ];
+        $selectAligment = $ui->input()->field()->select("Alignment", $alignments)->withValue($properties["aligments"] ?? "Center")->withRequired(true);
+
+        $showFullscreenValue = isset($properties["showFullscreen"]) && $properties["showFullscreen"] == 1;
+        $showFullscreen = $ui->input()->field()->checkbox("Show Fullscreen")->withValue($showFullscreenValue);
+
+        $textRepresentation = $ui->input()->field()->text("Text Representation")->withByline("Used for image 'alt' attribute.")->withValue($properties["textRepresentation"] ?? "");
+
+        // 3. Group fields
+        $fields = [
+            "prompt" => $prompt,
+            "file" => $file,
+            "styles" => $selecStyle,
+            "widthInput" => $widthInput,
+            "title" => $title,
+            "styleClass" => $styleClass,
+            "aligments" => $selectAligment,
+            "showFullscreen" => $showFullscreen,
+            "textRepresentation" => $textRepresentation
+        ];
+
+        $section1 = $ui->input()->field()->section($fields, $this->plugin->txt("configuration"));
 
         $DIC->ctrl()->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'saveImage');
         $form_action = $DIC->ctrl()->getLinkTargetByClass('ilAIPicPluginGUI', "update");
@@ -148,9 +209,15 @@ class ilAIPicEditorGUI
         $renderer = $DIC->ui()->renderer();
         $request = $DIC->http()->request();
         $query = $DIC->http()->wrapper()->query();
-        $action = $query->retrieve("cmd", $refinery->to()->string());
 
-        if ($request->getMethod() == "POST" && $action != "post") {
+        // Retrieve method flag from JS
+        $methodDesired = "";
+        if ($query->has("methodDesired")) {
+            $methodDesired = $query->retrieve("methodDesired", $refinery->to()->string());
+        }
+
+        // Only intercept if sendPrompt flag is present to avoid overriding native submit
+        if ($request->getMethod() == "POST" && $methodDesired === "sendPrompt") {
             $this->sendPromptByJs();
         }
 
@@ -181,8 +248,9 @@ class ilAIPicEditorGUI
 
         $buttonDownloadHtml = '<div id="downloadButton" style="display: none; margin-bottom: 10px; margin-top: 10px;">' . $renderer->render($buttonDownload) . '</div>';
 
-        return '<div style="display: flex; align-items: center; flex-direction: column; justify-content: center;">' .
-            '<div id="imageDiv" style="padding: 10px; position: relative; display: flex;">' .
+        return '<div style="display: flex; align-items: center; flex-direction: column; justify-content: center; width: 100%;">' .
+            '<div class="aipic-align-group" style="display: flex; flex-direction: column; align-items: center;">' .
+            '<div id="imageDiv" style="padding: 10px; position: relative; display: flex; width: 100%; justify-content: center;">' .
             '<div id="loadingSpinner" style="display: none; position: absolute; background-color: white; box-shadow: 0 0 5px 2px #d1d1d1; top: 50%; left: 50%; transform: translate(-50%, -50%);">' .
             '<img src="./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/images/loading.gif" alt="loading""/>'
             . '</div>' .
@@ -194,6 +262,7 @@ class ilAIPicEditorGUI
             ' data-txt-generating="' . htmlspecialchars($this->plugin->txt("generating_image")) . '"' .
             ' data-txt-error-admin="' . htmlspecialchars($this->plugin->txt("err_contact_admin")) . '">' .
             $renderer->render($buttonGenerateImage) .
+            '</div>' .
             '</div>' .
             '</div>';
     }
