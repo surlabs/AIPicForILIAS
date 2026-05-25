@@ -73,7 +73,7 @@ class ilAIPicEditorGUI
         $ui = $DIC->ui()->factory();
         $lng = $DIC->language();
 
-        // 1. Campos originales para la generación de la IA
+    
         $file = $ui->input()->field()->file($this->uploader, "")->withAcceptedMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
 
         $styles_options = [
@@ -88,7 +88,7 @@ class ilAIPicEditorGUI
         $widthInput = $ui->input()->field()->numeric($this->plugin->txt("width"), $this->plugin->txt("width_px"))->withRequired(true)->withValue(50);
         $prompt = $ui->input()->field()->textarea($this->plugin->txt("prompt"), $this->plugin->txt("prompt_description"))->withRequired(true);
 
-        // 2. Native Media Object properties
+        //  Native Media Object properties
         $title = $ui->input()->field()->text("Title"); // Opcional: cambiar por $this->plugin->txt("title") en el futuro
 
         $style_classes = [
@@ -112,7 +112,7 @@ class ilAIPicEditorGUI
         $showFullscreen = $ui->input()->field()->checkbox("Show Fullscreen");
         $textRepresentation = $ui->input()->field()->text("Text Representation")->withByline("Used for image 'alt' attribute.");
 
-        // 3. Group fields in section
+        // Group fields in section
         $fields = [
             "prompt" => $prompt,
             "file" => $file,
