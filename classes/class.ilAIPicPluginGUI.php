@@ -128,7 +128,6 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
                         $DIC->ui()->mainTemplate()->setOnScreenMessage('failure', "Error: ILIAS rechazó la actualización de la página.", true);
                     }
                 } catch (Throwable $e) {
-                    // EL CHIVATO DEFINITIVO: Ahora nos dirá el archivo y la línea exacta
                     $errorMsg = "Error en " . basename($e->getFile()) . " (Línea " . $e->getLine() . "): " . $e->getMessage();
                     $DIC->ui()->mainTemplate()->setOnScreenMessage('failure', $errorMsg, true);
                 }
