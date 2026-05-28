@@ -384,7 +384,12 @@ function checkChanges() {
     const isSpinnerVisible = loadingSpinner ? loadingSpinner.style.display === "block" : false;
     const promptEmpty = prompt ? prompt.val().length === 0 : true;
 
-    setDisableSendbuttons(promptEmpty || isSpinnerVisible || isWidthInputEmpty(), imgEmptyOrDefault);
+    // If spinner is visible, both generate and send buttons must be disabled.
+    if (isSpinnerVisible) {
+        setDisableSendbuttons(true, true);
+    } else {
+        setDisableSendbuttons(promptEmpty || isWidthInputEmpty(), imgEmptyOrDefault);
+    }
 }
 
 function displayMessage(htmlMessage) {
