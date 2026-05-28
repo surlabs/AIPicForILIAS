@@ -20,10 +20,10 @@
 
 $id = "xaip";
 
-$version = "9.0.3";
+$version = "11.0.0";
 
-$ilias_min_version = "9.0";
-$ilias_max_version = "9.999";
+$ilias_min_version = "11.0";
+$ilias_max_version = "11.999";
 
 $responsible = 'Jesus Copado';
 $responsible_mail = 'jcopado@surlabs.com';
