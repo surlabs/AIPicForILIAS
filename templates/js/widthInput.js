@@ -104,7 +104,5 @@ $(document).ready(function () {
         const slider = createSlider(input.value);
         synchronizeInputs(input, slider);
         applySliderStyles(slider, mainColor);
-    } else {
-        console.warn("AIPic Debug: Could not find the Width field to generate the slider.");
     }
 });

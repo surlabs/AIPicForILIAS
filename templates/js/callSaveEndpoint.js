@@ -20,7 +20,7 @@ function callSaveEndpoint(url) {
             currentUrl.searchParams.delete("methodDesired");
             currentUrl.searchParams.set("methodDesired", "downloadImage");
             url = currentUrl.toString();
-            console.log("urlDownload:", images[i].src)
+
         }
     }
     fetch(url, {
@@ -30,13 +30,13 @@ function callSaveEndpoint(url) {
             if (!response.ok) {
                 throw new Error('Error on server side');
             }
-            console.log("response from server", response);
+
             return response.blob();
         })
         .then(blob => {
 
             const urlBlob = window.URL.createObjectURL(blob);
-            console.log("urlBlob:", urlBlob);
+
             const a = document.createElement('a');
             a.href = urlBlob;
             a.download = "AIPic.png";
@@ -46,6 +46,6 @@ function callSaveEndpoint(url) {
             window.URL.revokeObjectURL(urlBlob);
         })
         .catch(error => {
-            console.error('Error:', error);
+
         });
 }

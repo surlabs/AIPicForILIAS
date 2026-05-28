@@ -10,5 +10,5 @@ function downloadImage(imageUrl, fileName = "imagen") {
             a.click();
             document.body.removeChild(a);
         })
-        .catch((error) => console.error("Error downloading the image:", error));
+        .catch((error) => {});
 }

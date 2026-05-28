@@ -114,6 +114,7 @@ class UploadServiceAIPicGUI extends AbstractCtrlAwareUploadHandler
         $result = end($array);
         if ($result instanceof UploadResult && $result->isOK()) {
             $mob = new ilObjMediaObject();
+            $mob->setTitle("AIPic_Upload_" . time());
             $mob->create();
 
             $mob_dir = ilObjMediaObject::_getDirectory($mob->getId());

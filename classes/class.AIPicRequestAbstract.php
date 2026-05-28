@@ -164,7 +164,7 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $bodyRequest);
             curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->header);
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($this->ch, CURLOPT_TIMEOUT, 120);
+            curl_setopt($this->ch, CURLOPT_TIMEOUT, 300);
 
             $rawResponse = curl_exec($this->ch);
             $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
@@ -201,14 +201,12 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
                 }
 
                 if ($b64) {
-                    // Repackage to match DALL-E format
                     $rawResponse = json_encode([
                         "data" => [
                             ["b64_json" => $b64]
                         ]
                     ]);
                 } else {
-                    // Handle Gemini safety blocks (HTTP 200 without image data)
                     error_log("AIPic Plugin Error - Gemini blocked the content or did not return an image: " . $rawResponse);
                     $genericError = [
                         "error" => true,

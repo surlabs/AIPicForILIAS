@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 'width': sizeVal + '%',
                 'max-width': '100%',
                 'height': 'auto',
-                'transition': 'width 0.2s ease-out' // Smooth transition
+                'transition': 'width 0.2s ease-out'
             });
         }
     }
@@ -154,145 +154,152 @@ function resendForm(url, urlBase) {
     generateButton.text(redirectButtonDiv.data("txt-generating"));
 
     $.post(url, {prompt: promptValue})
-        .done(async function (data) {
+        .done(function (data) {
+
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
-                    console.warn("AIPic Parse Warning", e);
+
                 }
             }
 
-            if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
-                try {
-                    const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
-                    if (jsonStringMatch) {
-                        const rawJson = JSON.parse(jsonStringMatch[0]);
-                        data.image = { mode: 'base64', value: rawJson.data[0].b64_json, mime: 'image/png' };
-                        delete data.Error;
-                    }
-                } catch (e) {
-                    console.error("Failed to recover Base64 payload:", e);
-                }
+            if (data && data.status === 'pending' && data.token) {
+                // Start polling status
+                const pollUrl = url.replace("methodDesired=sendPrompt", "methodDesired=checkPromptStatus") + "&token=" + encodeURIComponent(data.token);
+                
+                const intervalId = setInterval(function() {
+                    $.get(pollUrl)
+                        .done(async function(pollData) {
+
+                            if (typeof pollData === 'string') {
+                                try {
+                                    pollData = JSON.parse(pollData);
+                                } catch (e) {
+
+                                    return;
+                                }
+                            }
+
+                            if (pollData && pollData.status === 'completed') {
+                                clearInterval(intervalId);
+                                handleSuccess(pollData);
+                            } else if (pollData && pollData.status === 'failed') {
+                                clearInterval(intervalId);
+                                handleFailure(pollData.error);
+                            }
+                        })
+                        .fail(function(jqXHR, textStatus, errorThrown) {
+                            clearInterval(intervalId);
+
+                            handleFailure("Network error while polling status.");
+                        });
+                }, 3000);
+            } else {
+                handleFailure("Failed to initialize background generation job.");
             }
-
-            let apiErrorMsg = null;
-            if (data && data.error === true && data.message) {
-                apiErrorMsg = data.message;
-            } else if (data && data.Error) {
-                if (typeof data.Error === 'string') {
-                    try {
-                        const parsedStr = JSON.parse(data.Error);
-                        apiErrorMsg = (parsedStr && parsedStr.error === true && parsedStr.message) ? parsedStr.message : data.Error;
-                    } catch (e) {
-                        apiErrorMsg = data.Error;
-                    }
-                } else if (data.Error.message) {
-                    apiErrorMsg = data.Error.message;
-                } else {
-                    apiErrorMsg = "Unknown AI integration error.";
-                }
-            }
-
-            if (apiErrorMsg) {
-                loadingSpinner.style.display = "none";
-                setDisableFormControls(false);
-                generateButton.text(originalButtonText);
-                setDisableSendbuttons(false, false);
-
-                displayMessage(`
-                  <div class="alert alert-danger" role="alert">
-                    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
-                    ${apiErrorMsg}
-                  </div>
-                `);
-                return;
-            }
-
-            const downloadButton = document.getElementById("downloadButton");
-            const imgDiv = document.getElementById("imageDiv");
-
-            try {
-                const imagePayload = data && data.image ? data.image : null;
-                const blob = await getImageBlob(imagePayload, urlBase);
-                const fileExtension = getFileExtension(blob.type || 'image/png');
-                const file = new File([blob], `generated_image.${fileExtension}`, {type: blob.type || 'image/png'});
-                const previewUrl = URL.createObjectURL(blob);
-
-                if (currentGeneratedImageUrl) URL.revokeObjectURL(currentGeneratedImageUrl);
-                currentGeneratedImageUrl = previewUrl;
-
-                if (dzInstance) {
-                    dzInstance.addFile(file);
-                } else if (associatedFileInput) {
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    associatedFileInput.files = dataTransfer.files;
-                    associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
-                } else if (dropzoneVisualElement && typeof Dropzone !== 'undefined') {
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    ['dragenter', 'dragover', 'drop'].forEach(eventName => {
-                        dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer }));
-                    });
-                }
-
-            } catch (error) {
-                console.error("AIPic Debug Error:", error);
-                loadingSpinner.style.display = "none";
-                setDisableSendbuttons(false, false);
-                setDisableFormControls(false);
-                generateButton.text(originalButtonText);
-
-                const redirectBtnEl = $("#redirectButton");
-                let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred. Please contact the administrator.";
-
-                displayMessage(`
-                  <div class="alert alert-danger" role="alert">
-                    <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
-                     ${adminErrorText}
-                  </div>
-                `);
-                return;
-            }
-
-            if (imgDiv) {
-                const targetImg = $(imgDiv).find('img[alt="Generated_image"]');
-                if (targetImg.length) {
-                    targetImg.attr('src', currentGeneratedImageUrl);
-                    // Trigger forced resize
-                    setTimeout(() => { widthInput.trigger('input'); }, 50);
-                }
-            }
-
-            setTimeout(() => {
-                loadingSpinner.style.display = "none";
-                setDisableFormControls(false);
-                generateButton.text(originalButtonText);
-                checkChanges();
-            }, 1500);
-
-            if (downloadButton) downloadButton.style.display = "block";
-            checkChanges();
-
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
-            console.error("AIPic Network Fail:", textStatus, errorThrown);
-            setDisableSendbuttons(false, false);
-            setTimeout(() => {
-                loadingSpinner.style.display = "none";
-                setDisableFormControls(false);
-                generateButton.text(originalButtonText);
-                checkChanges();
-            }, 1500);
 
-            displayMessage(`
-              <div class="alert alert-danger" role="alert">
-                <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
-                 An error occurred while communicating with the server. Please check your connection.
-              </div>
-            `);
+            handleFailure("An error occurred while communicating with the server. Please check your connection.");
         });
+
+    async function handleSuccess(data) {
+        if (data && data.Error && typeof data.Error === 'string' && data.Error.includes('b64_json')) {
+            try {
+                const jsonStringMatch = data.Error.match(/\{[\s\S]*\}/);
+                if (jsonStringMatch) {
+                    const rawJson = JSON.parse(jsonStringMatch[0]);
+                    data.image = { mode: 'base64', value: rawJson.data[0].b64_json, mime: 'image/png' };
+                    delete data.Error;
+                }
+            } catch (e) {
+
+            }
+        }
+
+        const downloadButton = document.getElementById("downloadButton");
+        const imgDiv = document.getElementById("imageDiv");
+
+        try {
+            const imagePayload = data && data.image ? data.image : null;
+            const blob = await getImageBlob(imagePayload, urlBase);
+            const fileExtension = getFileExtension(blob.type || 'image/png');
+            const file = new File([blob], `generated_image.${fileExtension}`, {type: blob.type || 'image/png'});
+            const previewUrl = URL.createObjectURL(blob);
+
+            if (currentGeneratedImageUrl) URL.revokeObjectURL(currentGeneratedImageUrl);
+            currentGeneratedImageUrl = previewUrl;
+
+            if (dzInstance) {
+                dzInstance.addFile(file);
+            } else if (associatedFileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                associatedFileInput.files = dataTransfer.files;
+                associatedFileInput.dispatchEvent(new Event('change', {bubbles: true}));
+            } else if (dropzoneVisualElement && typeof Dropzone !== 'undefined') {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                ['dragenter', 'dragover', 'drop'].forEach(eventName => {
+                    dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer }));
+                });
+            }
+
+        } catch (error) {
+
+            handleFailure();
+            return;
+        }
+
+        if (imgDiv) {
+            const targetImg = $(imgDiv).find('img[alt="Generated_image"]');
+            if (targetImg.length) {
+                targetImg.attr('src', currentGeneratedImageUrl);
+                // Trigger forced resize
+                setTimeout(() => { widthInput.trigger('input'); }, 50);
+            }
+        }
+
+        setTimeout(() => {
+            loadingSpinner.style.display = "none";
+            setDisableFormControls(false);
+            generateButton.text(originalButtonText);
+            checkChanges();
+        }, 1500);
+
+        if (downloadButton) downloadButton.style.display = "block";
+        checkChanges();
+    }
+
+    function handleFailure(errorData) {
+        let apiErrorMsg = null;
+        if (errorData) {
+            if (typeof errorData === 'string') {
+                apiErrorMsg = errorData;
+            } else if (errorData.message) {
+                apiErrorMsg = errorData.message;
+            } else if (errorData.Error) {
+                apiErrorMsg = typeof errorData.Error === 'string' ? errorData.Error : errorData.Error.message;
+            }
+        }
+
+        loadingSpinner.style.display = "none";
+        setDisableSendbuttons(false, false);
+        setDisableFormControls(false);
+        generateButton.text(originalButtonText);
+
+        const redirectBtnEl = $("#redirectButton");
+        let adminErrorText = redirectBtnEl.data("txt-error-admin") || "An error occurred. Please contact the administrator.";
+        let finalError = apiErrorMsg || adminErrorText;
+
+        displayMessage(`
+          <div class="alert alert-danger" role="alert">
+            <div class="ilAccHeadingHidden"><a name="il_message_focus">Error</a></div>
+            ${finalError}
+          </div>
+        `);
+    }
 }
 
 async function getImageBlob(imagePayload, urlBase) {

@@ -221,6 +221,10 @@ class ilAIPicEditorGUI
             $this->sendPromptByJs();
         }
 
+        if ($methodDesired === "checkPromptStatus") {
+            $this->checkPromptStatusByJs();
+        }
+
         return $renderer->render($form);
     }
 
@@ -315,11 +319,37 @@ class ilAIPicEditorGUI
     #[NoReturn]
     public function sendPromptByJs($httpCode = 200): void
     {
-        set_time_limit(120);
+        set_time_limit(300);
 
+        // Generate token and path for background job file
+        $token = uniqid('aipic_', true);
+        $temp_file = sys_get_temp_dir() . '/job_' . $token . '.json';
+        file_put_contents($temp_file, json_encode(['status' => 'pending']));
+
+        // Send instant pending response to the browser
         http_response_code($httpCode);
         header('Content-type: application/json');
+        echo json_encode(['status' => 'pending', 'token' => $token]);
 
+        // Close session and flush connection to run in the background
+        if (session_id()) {
+            session_write_close();
+        }
+        
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            // Fallback flush for non-FastCGI environments
+            ignore_user_abort(true);
+            ob_start();
+            echo "";
+            $size = ob_get_length();
+            header("Content-Length: $size");
+            ob_end_flush();
+            flush();
+        }
+
+        // PHP keeps running here in the background!
         $rawPrompt = $_POST["prompt"] ?? "";
         $success = $this->AIPicProvider->sendPrompt($rawPrompt);
 
@@ -329,7 +359,10 @@ class ilAIPicEditorGUI
                 : [];
 
             if (!empty($res)) {
-                echo json_encode(["image" => end($res)]);
+                file_put_contents($temp_file, json_encode([
+                    'status' => 'completed',
+                    'image' => end($res)
+                ]));
                 exit();
             }
         }
@@ -340,15 +373,55 @@ class ilAIPicEditorGUI
         if (is_array($decodedResponse) && ($decodedResponse['error'] ?? false) === true) {
             $langKey = $decodedResponse['error_key'] ?? 'no_images_found';
             $decodedResponse['message'] = $this->plugin->txt($langKey);
-
-            echo json_encode($decodedResponse);
+            file_put_contents($temp_file, json_encode([
+                'status' => 'failed',
+                'error' => $decodedResponse
+            ]));
             exit();
         }
 
-        echo json_encode([
-            "Error" => $this->plugin->txt("no_images_found"),
-            "Motivo_Real_IA" => $rawAiResponse
-        ]);
+        file_put_contents($temp_file, json_encode([
+            'status' => 'failed',
+            'error' => [
+                "Error" => $this->plugin->txt("no_images_found"),
+                "Motivo_Real_IA" => $rawAiResponse
+            ]
+        ]));
+        exit();
+    }
+
+    #[NoReturn]
+    public function checkPromptStatusByJs(): void
+    {
+        global $DIC;
+        $refinery = $DIC->refinery();
+        $query = $DIC->http()->wrapper()->query();
+        $token = "";
+        
+        if ($query->has("token")) {
+            $token = $query->retrieve("token", $refinery->to()->string());
+        }
+
+        header('Content-type: application/json');
+
+        if (empty($token) || !preg_match('/^[a-zA-Z0-9._-]+$/', $token)) {
+            echo json_encode(["status" => "failed", "error" => "Invalid token"]);
+            exit();
+        }
+
+        $temp_file = sys_get_temp_dir() . '/job_' . $token . '.json';
+        if (!file_exists($temp_file)) {
+            echo json_encode(["status" => "pending"]);
+            exit();
+        }
+
+        $content = file_get_contents($temp_file);
+        $data = json_decode($content, true);
+        echo $content;
+
+        if (isset($data['status']) && $data['status'] !== 'pending') {
+            @unlink($temp_file);
+        }
         exit();
     }
 }
