@@ -150,15 +150,12 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
      */
     public function edit(): void
     {
-        global $DIC;
-
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptFormWithProperties($this->getProperties());
 
-        $irss = $DIC->resourceStorage();
         $file_name = null;
         if (!empty($this->getProperties()["imageId"])) {
-            $file_name = $irss->consume()->src(new ResourceIdentification($this->getProperties()["imageId"]))->getSrc();
+            $file_name = $this->resolveImageSrc($this->getProperties()["imageId"]);
         }
 
         $this->renderEditorWithForm($form, $file_name);
@@ -185,7 +182,7 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         if (isset($result) && count($result) > 0) {
             if (!empty($result[0]['file'])) {
                 if (array_key_exists("imageId", $this->getProperties())) {
-                    $this->uploader->removeFromOutside($this->getProperties()["imageId"]);
+                    $this->removeImageById($this->getProperties()["imageId"]);
                 }
                 $result[0]['imageId'] = $result[0]['file'][0];
                 $result[0]["legacyFileName"] = $this->uploader->getInfoResult($result[0]["file"][0])->getName();
@@ -321,6 +318,11 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
      */
     private function updateMediaObjectProperties(array $a_properties): void
     {
+        // Legacy UUID imageIds cannot be updated via ilObjMediaObject — skip gracefully
+        if ($this->isLegacyImageId($a_properties["imageId"] ?? '')) {
+            return;
+        }
+
         try {
             $mob = new ilObjMediaObject((int)$a_properties["imageId"]);
             if ($mob->getId()) {
@@ -413,6 +415,86 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers: legacy vs. new imageId format
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true if the given imageId is a legacy IRSS UUID (non-numeric).
+     * New-format imageIds are the integer ID of an ilObjMediaObject.
+     */
+    private function isLegacyImageId(string $imageId): bool
+    {
+        return !ctype_digit(trim($imageId));
+    }
+
+    /**
+     * Resolve the web-accessible image URL for both legacy (IRSS UUID) and
+     * new (ilObjMediaObject integer ID) imageId formats.
+     *
+     * Returns null if the image resource cannot be found.
+     */
+    private function resolveImageSrc(string $imageId): ?string
+    {
+        if ($imageId === '') {
+            return null;
+        }
+
+        if ($this->isLegacyImageId($imageId)) {
+            // Legacy format: IRSS UUID — resolve via ResourceStorage
+            try {
+                global $DIC;
+                $irss = $DIC->resourceStorage();
+                $rid  = new \ILIAS\ResourceStorage\Identification\ResourceIdentification($imageId);
+                return $irss->consume()->src($rid)->getSrc();
+            } catch (Throwable $e) {
+                return null;
+            }
+        }
+
+        // New format: integer mob ID — resolve via ilObjMediaObject
+        try {
+            $mob = new ilObjMediaObject((int)$imageId);
+            if (!$mob->getId()) {
+                return null;
+            }
+            $mediaItems = $mob->getMediaItems();
+            if (empty($mediaItems)) {
+                return null;
+            }
+            $mediaItem = $mediaItems[0];
+            return ilObjMediaObject::_getURL($mob->getId()) . '/' . $mediaItem->getLocation();
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Delete a stored image by its imageId, handling both legacy (IRSS UUID)
+     * and new (ilObjMediaObject integer ID) formats.
+     */
+    private function removeImageById(string $imageId): void
+    {
+        if ($imageId === '') {
+            return;
+        }
+
+        if ($this->isLegacyImageId($imageId)) {
+            // Legacy: remove from IRSS
+            $this->uploader->removeFromOutside($imageId);
+        } else {
+            // New: delete the ilObjMediaObject
+            try {
+                $mob = new ilObjMediaObject((int)$imageId);
+                if ($mob->getId()) {
+                    $mob->delete();
+                }
+            } catch (Throwable $e) {
+                // Silent: mob may already be gone
+            }
+        }
+    }
+
     /**
      * Render the editor form and load assets
      */
@@ -441,16 +523,17 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
      */
     public function getElementHTML(string $a_mode, array $a_properties, string $plugin_version): string
     {
-        global $DIC;
-
         if (empty($a_properties["imageId"])) {
             return "";
         }
 
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
 
-        $irss = $DIC->resourceStorage();
-        $file_name = $irss->consume()->src(new ResourceIdentification($a_properties["imageId"]))->getSrc();
+        $file_name = $this->resolveImageSrc($a_properties["imageId"]);
+        if ($file_name === null) {
+            // Image resource not found (legacy element whose IRSS resource no longer exists)
+            return "";
+        }
         $a_properties["fileName"] = $file_name;
 
         $tpl = new ilTemplate("aIPic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
