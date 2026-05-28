@@ -1,3 +1,38 @@
+// Intercept and patch window.il.UI.Input.textarea.init to prevent core ILIAS 10 crashes with undefined textarea IDs
+(function() {
+    function patchTextarea() {
+        if (window.il && window.il.UI && window.il.UI.Input && window.il.UI.Input.textarea) {
+            const originalInit = window.il.UI.Input.textarea.init;
+            if (originalInit && !originalInit.isPatched) {
+                window.il.UI.Input.textarea.init = function(e) {
+                    if (e === undefined || e === null || e === 'undefined' || e === "") {
+                        console.warn("AIPic Interceptor: Prevented ILIAS core crash for undefined textarea ID.");
+                        return;
+                    }
+                    try {
+                        return originalInit.apply(this, arguments);
+                    } catch (err) {
+                        console.warn("AIPic Interceptor: Handled error in textarea init:", err);
+                    }
+                };
+                window.il.UI.Input.textarea.init.isPatched = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if (!patchTextarea()) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+            attempts++;
+            if (patchTextarea() || attempts > 50) {
+                clearInterval(interval);
+            }
+        }, 50);
+    }
+})();
+
 let prompt, styleSelect, generateButton, loadingSpinner, sendButton, widthInput, alignmentButtons, finalPromptDisplay;
 let originalButtonText = '';
 let currentGeneratedImageUrl = null;
@@ -17,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     generateButton = $("#redirectButton button");
     loadingSpinner = document.getElementById("loadingSpinner");
-    sendButton = $('.il-standard-form-cmd button, .ilSubmitButton');
+    sendButton = $('.il-standard-form-cmd button, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary');
     finalPromptDisplay = $('#final-prompt-container input');
 
     setTimeout(() => {
@@ -116,6 +151,30 @@ document.addEventListener("DOMContentLoaded", function () {
             return /Advanced Settings|Ajustes avanzados|Erweiterte Einstellungen/.test($(this).text());
         }).hide();
     }, 500);
+
+    // Prevent submitting the form completely if we are currently generating/loading an image (capturing phase)
+    document.addEventListener("submit", function(e) {
+        const spinner = document.getElementById("loadingSpinner");
+        const isSpinnerVisible = (spinner && spinner.style.display === "block");
+        if (isSpinnerVisible) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    document.addEventListener("click", function(e) {
+        const spinner = document.getElementById("loadingSpinner");
+        const isSpinnerVisible = (spinner && spinner.style.display === "block");
+        if (isSpinnerVisible) {
+            const target = $(e.target);
+            if (target.is('.il-standard-form-cmd button, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary') || target.closest('.il-standard-form-cmd button, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary').length) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    }, true);
 });
 
 function resendForm(url, urlBase) {
@@ -222,7 +281,55 @@ function resendForm(url, urlBase) {
                 if (currentGeneratedImageUrl) URL.revokeObjectURL(currentGeneratedImageUrl);
                 currentGeneratedImageUrl = previewUrl;
 
+                // Enable all form controls before adding the file to Dropzone.
+                // Otherwise, disabled form inputs are omitted in the async Dropzone file upload POST payload,
+                // causing Refinery validation failures (e.g. string fields like prompt/title being missing).
+                setDisableFormControls(false);
+
                 if (dzInstance) {
+                    // Listen to addedfile event to populate title immediately upon DOM creation
+                    dzInstance.on("addedfile", function(fileObj) {
+                        setTimeout(() => {
+                            const previewElement = $(fileObj.previewElement);
+                            if (previewElement.length) {
+                                const titleInput = previewElement.find('input[type="text"]');
+                                if (titleInput.length && titleInput.val().trim() === "") {
+                                    titleInput.val("generated_image");
+                                    titleInput.trigger('change');
+                                }
+                            }
+                        }, 50);
+                    });
+
+                    // Listen to sending event as a fallback check right before payload is sent
+                    dzInstance.on("sending", function(fileObj, xhr, formData) {
+                        console.log("=== AIPic Debug: Dropzone Sending Event ===");
+                        console.log("File name:", fileObj.name);
+                        
+                        // Force append all possible variations of title parameters to ensure Refinery gets a valid string
+                        formData.append("title", "generated_image");
+                        formData.append("imageTitle", "generated_image");
+                        formData.append("AIPicForm[title]", "generated_image");
+                        formData.append("AIPicForm[imageTitle]", "generated_image");
+                        
+                        // ILIAS 10 sequential names for AIPicForm title input
+                        formData.append("AIPicForm/input_10/input_15", "generated_image");
+                        
+                        // Dropzone metadata index structures
+                        formData.append("AIPicForm/input_10/input_12[input_0][title]", "generated_image");
+                        formData.append("AIPicForm/input_10/input_12[input_0][0][title]", "generated_image");
+                        formData.append("AIPicForm/input_10/input_12[input_0][generated_image][title]", "generated_image");
+                        formData.append("AIPicForm/input_10/input_12[input_0][generated_image.png][title]", "generated_image");
+
+                        // Set values to any empty title fields in the DOM as well
+                        $('[name*="title"], [name*="Title"], [name*="input_15"]').each(function() {
+                            if ($(this).val().trim() === "") {
+                                $(this).val("generated_image");
+                                $(this).trigger('change');
+                            }
+                        });
+                    });
+
                     dzInstance.addFile(file);
                 } else if (associatedFileInput) {
                     const dataTransfer = new DataTransfer();
@@ -236,6 +343,29 @@ function resendForm(url, urlBase) {
                         dropzoneVisualElement.dispatchEvent(new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer }));
                     });
                 }
+
+                // Prevent Refinery 'title' string validation errors by auto-filling empty title inputs (general form elements)
+                setTimeout(() => {
+                    const pluginTitleInput = $('input[name*="[title]"], input[name*="[imageTitle]"], input[name="title"]');
+                    if (pluginTitleInput.length) {
+                        pluginTitleInput.each(function() {
+                            if ($(this).val().trim() === "") {
+                                $(this).val("AIPic Image");
+                                $(this).trigger('change');
+                            }
+                        });
+                    }
+
+                    const dropzoneTitleInput = $('.ui-input-file-metadata input[type="text"], .ui-input-file-input-list input[type="text"]');
+                    if (dropzoneTitleInput.length) {
+                        dropzoneTitleInput.each(function() {
+                            if ($(this).val().trim() === "") {
+                                $(this).val("generated_image");
+                                $(this).trigger('change');
+                            }
+                        });
+                    }
+                }, 150);
 
             } catch (error) {
                 console.error("AIPic Debug Error:", error);
@@ -360,7 +490,56 @@ function isWidthInputEmpty() {
 function setDisableSendbuttons(disableGen, disableSend) {
     setTimeout(() => {
         if (generateButton && generateButton.length) generateButton.prop("disabled", disableGen);
-        if (sendButton && sendButton.length) sendButton.prop("disabled", disableSend);
+        
+        // Re-query dynamically to ensure we disable the current submit/send buttons in ILIAS 10
+        const activeSendButtons = $('.il-standard-form-cmd button, .il-standard-form-cmd input, .il-standard-form-cmd a, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary, button[id*="save"], button[id*="submit"], a.btn, a[id*="save"], a[id*="submit"], button:contains("Send"), button:contains("Save"), button:contains("update"), a:contains("Send"), a:contains("Save"), a:contains("update"), a:contains("Guardar"), a:contains("Enviar")');
+        if (activeSendButtons.length) {
+            if (disableSend) {
+                activeSendButtons.prop("disabled", true).attr("disabled", "disabled");
+                activeSendButtons.each(function() {
+                    this.style.setProperty('background', '#e0e0e0', 'important');
+                    this.style.setProperty('background-color', '#e0e0e0', 'important');
+                    this.style.setProperty('background-image', 'none', 'important');
+                    this.style.setProperty('color', '#888888', 'important');
+                    this.style.setProperty('border', '1px solid #cccccc', 'important');
+                    this.style.setProperty('border-color', '#cccccc', 'important');
+                    this.style.setProperty('opacity', '0.5', 'important');
+                    this.style.setProperty('cursor', 'not-allowed', 'important');
+                    this.style.setProperty('box-shadow', 'none', 'important');
+                    this.style.setProperty('text-shadow', 'none', 'important');
+                    this.style.setProperty('pointer-events', 'none', 'important');
+                    
+                    // ILIAS 10 primary buttons might use CSS custom properties (variables)
+                    this.style.setProperty('--btn-primary-bg', '#e0e0e0', 'important');
+                    this.style.setProperty('--btn-primary-color', '#888888', 'important');
+                    this.style.setProperty('--btn-primary-border', '#cccccc', 'important');
+                    this.style.setProperty('--il-btn-primary-bg', '#e0e0e0', 'important');
+                    this.style.setProperty('--il-btn-primary-color', '#888888', 'important');
+                });
+                activeSendButtons.addClass('aipic-disabled-button-force');
+            } else {
+                activeSendButtons.prop("disabled", false).removeAttr("disabled");
+                activeSendButtons.each(function() {
+                    this.style.removeProperty('background');
+                    this.style.removeProperty('background-color');
+                    this.style.removeProperty('background-image');
+                    this.style.removeProperty('color');
+                    this.style.removeProperty('border');
+                    this.style.removeProperty('border-color');
+                    this.style.removeProperty('opacity');
+                    this.style.removeProperty('cursor');
+                    this.style.removeProperty('box-shadow');
+                    this.style.removeProperty('text-shadow');
+                    this.style.removeProperty('pointer-events');
+                    this.style.removeProperty('--btn-primary-bg');
+                    this.style.removeProperty('--btn-primary-color');
+                    this.style.removeProperty('--btn-primary-border');
+                    this.style.removeProperty('--il-btn-primary-bg');
+                    this.style.removeProperty('--il-btn-primary-color');
+                });
+                activeSendButtons.removeClass('aipic-disabled-button-force');
+            }
+        }
     }, 50);
 }
 
@@ -370,6 +549,56 @@ function setDisableFormControls(disabled) {
     if(widthInput) widthInput.prop('disabled', disabled);
     $('input[type="range"]').prop('disabled', disabled);
     $('.aipic-btn-container button, .btn-group button').prop('disabled', disabled);
+    
+    // Also disable and style the submit buttons when disabling form controls
+    const activeSendButtons = $('.il-standard-form-cmd button, .il-standard-form-cmd input, .il-standard-form-cmd a, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary, button[id*="save"], button[id*="submit"], a.btn, a[id*="save"], a[id*="submit"], button:contains("Send"), button:contains("Save"), button:contains("update"), a:contains("Send"), a:contains("Save"), a:contains("update"), a:contains("Guardar"), a:contains("Enviar")');
+    if (activeSendButtons.length) {
+        if (disabled) {
+            activeSendButtons.prop("disabled", true).attr("disabled", "disabled");
+            activeSendButtons.each(function() {
+                this.style.setProperty('background', '#e0e0e0', 'important');
+                this.style.setProperty('background-color', '#e0e0e0', 'important');
+                this.style.setProperty('background-image', 'none', 'important');
+                this.style.setProperty('color', '#888888', 'important');
+                this.style.setProperty('border', '1px solid #cccccc', 'important');
+                this.style.setProperty('border-color', '#cccccc', 'important');
+                this.style.setProperty('opacity', '0.5', 'important');
+                this.style.setProperty('cursor', 'not-allowed', 'important');
+                this.style.setProperty('box-shadow', 'none', 'important');
+                this.style.setProperty('text-shadow', 'none', 'important');
+                this.style.setProperty('pointer-events', 'none', 'important');
+                
+                // ILIAS 10 CSS variables overrides
+                this.style.setProperty('--btn-primary-bg', '#e0e0e0', 'important');
+                this.style.setProperty('--btn-primary-color', '#888888', 'important');
+                this.style.setProperty('--btn-primary-border', '#cccccc', 'important');
+                this.style.setProperty('--il-btn-primary-bg', '#e0e0e0', 'important');
+                this.style.setProperty('--il-btn-primary-color', '#888888', 'important');
+            });
+            activeSendButtons.addClass('aipic-disabled-button-force');
+        } else {
+            activeSendButtons.prop("disabled", false).removeAttr("disabled");
+            activeSendButtons.each(function() {
+                this.style.removeProperty('background');
+                this.style.removeProperty('background-color');
+                this.style.removeProperty('background-image');
+                this.style.removeProperty('color');
+                this.style.removeProperty('border');
+                this.style.removeProperty('border-color');
+                this.style.removeProperty('opacity');
+                this.style.removeProperty('cursor');
+                this.style.removeProperty('box-shadow');
+                this.style.removeProperty('text-shadow');
+                this.style.removeProperty('pointer-events');
+                this.style.removeProperty('--btn-primary-bg');
+                this.style.removeProperty('--btn-primary-color');
+                this.style.removeProperty('--btn-primary-border');
+                this.style.removeProperty('--il-btn-primary-bg');
+                this.style.removeProperty('--il-btn-primary-color');
+            });
+            activeSendButtons.removeClass('aipic-disabled-button-force');
+        }
+    }
 }
 
 function checkChanges() {

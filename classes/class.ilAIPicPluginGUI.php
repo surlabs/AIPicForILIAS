@@ -104,7 +104,13 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $ilCtrl->setParameterByClass('ilAIPicPluginGUI', 'methodDesired', 'sendPrompt');
 
         if ($request->getMethod() == "POST" && $action != "post" && $actionDesired == "saveImage") {
-            $form = $form->withRequest($request);
+            try {
+                $form = $form->withRequest($request);
+            } catch (Throwable $e) {
+                // Silently render the form again if invalid values are submitted (e.g. during generation or empty/disabled states)
+                $this->renderEditorWithForm($form);
+                return;
+            }
 
             if ($form->getError() !== null) {
                 $this->renderEditorWithForm($form);
@@ -112,6 +118,12 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
             }
 
             $result = $form->getData();
+            if (isset($result) && count($result) > 0) {
+                if (isset($result[0]['imageTitle'])) {
+                    $result[0]['title'] = $result[0]['imageTitle'];
+                    unset($result[0]['imageTitle']);
+                }
+            }
 
             if (isset($result) && count($result) > 0 && !empty($result[0]['file'])) {
                 $result[0]['imageId'] = $result[0]['file'][0];
@@ -170,7 +182,13 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
 
         $this->editorGUI = new ilAIPicEditorGUI($this->plugin, $this->generateImageCreator());
         $form = $this->editorGUI->getPromptFormWithProperties($this->getProperties());
-        $form = $form->withRequest($DIC->http()->request());
+        try {
+            $form = $form->withRequest($DIC->http()->request());
+        } catch (Throwable $e) {
+            // Silently render the form again
+            $this->renderEditorWithForm($form);
+            return;
+        }
 
         if ($form->getError() !== null) {
             $this->renderEditorWithForm($form);
@@ -178,6 +196,12 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         }
 
         $result = $form->getData();
+        if (isset($result) && count($result) > 0) {
+            if (isset($result[0]['imageTitle'])) {
+                $result[0]['title'] = $result[0]['imageTitle'];
+                unset($result[0]['imageTitle']);
+            }
+        }
 
         if (isset($result) && count($result) > 0) {
             if (!empty($result[0]['file'])) {
