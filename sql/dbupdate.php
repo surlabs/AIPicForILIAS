@@ -99,7 +99,7 @@ $db = $DIC->database();
 
 // Find all page_object rows whose XML contains an AIPic Plugged element
 $result = $db->queryF(
-    "SELECT id, parent_type, lang FROM page_object WHERE content LIKE %s",
+    "SELECT page_id, parent_id, parent_type, lang FROM page_object WHERE content LIKE %s",
     ['text'],
     ['%PluginName="AIPic"%']
 );
@@ -110,15 +110,16 @@ while ($row = $db->fetchAssoc($result)) {
 }
 
 foreach ($rows as $row) {
-    $page_id     = (int) $row['id'];
+    $page_id     = (int) $row['page_id'];
+    $parent_id   = (int) $row['parent_id'];
     $parent_type = (string) $row['parent_type'];
     $lang        = (string) $row['lang'];
 
     // Re-fetch the full content for this row
     $contentRes = $db->queryF(
-        "SELECT content FROM page_object WHERE id = %s AND parent_type = %s AND lang = %s",
-        ['integer', 'text', 'text'],
-        [$page_id, $parent_type, $lang]
+        "SELECT content FROM page_object WHERE page_id = %s AND parent_id = %s AND parent_type = %s AND lang = %s",
+        ['integer', 'integer', 'text', 'text'],
+        [$page_id, $parent_id, $parent_type, $lang]
     );
     $contentRow = $db->fetchAssoc($contentRes);
     if (!$contentRow || empty($contentRow['content'])) {
@@ -233,7 +234,8 @@ foreach ($rows as $row) {
             'page_object',
             ['content' => ['text', $new_content]],
             [
-                'id'          => ['integer', $page_id],
+                'page_id'     => ['integer', $page_id],
+                'parent_id'   => ['integer', $parent_id],
                 'parent_type' => ['text', $parent_type],
                 'lang'        => ['text', $lang],
             ]
