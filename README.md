@@ -12,6 +12,7 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
 ## Features
 
 - Seamless integration of AI image generation within ILIAS pages as a Page Component.
+- Support for multiple AI models: Now compatible with a wider range of image generation models to choose from.
 - Generation of images based on user-provided text prompts.
 - Options to customize image style, alignment, and size.
 - Secure and efficient handling of the image generation process via API.
