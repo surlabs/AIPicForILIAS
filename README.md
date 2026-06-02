@@ -20,27 +20,25 @@ AIPic is a Page Component plugin that enhances ILIAS pages by allowing users to 
 
 ### Software Requirements
 
-- This plugin requires [PHP](https://php.net) version 8.1+ to work properly on your ILIAS platform.
-- This plugin requires [ILIAS](https://www.ilias.de/docu/goto.php?target=latest_7&client_id=docu) version 9.x.
+- This plugin requires [PHP](https://php.net) version 8.2+ to work properly on your ILIAS platform.
+- This plugin requires [ILIAS](https://www.ilias.de/docu/goto.php?target=latest_7&client_id=docu) version 10.x.
 
 ### Installation Steps
 
 1.  Create necessary subdirectories if they do not exist:
     ```bash
-    mkdir -p Customizing/global/plugins/Services/COPage/PageComponent
-    cd Customizing/global/plugins/Services/COPage/PageComponent
+    mkdir -p public/Customizing/global/plugins/Services/COPage/PageComponent
+    cd public/Customizing/global/plugins/Services/COPage/PageComponent
     ```
 2.  Clone the repository into a directory named `AIPic`:
     ```bash
     git clone https://github.com/surlabs/AIPicForILIAS.git ./AIPic
     cd AIPic
-    git checkout main
+    git checkout ilias10
     ```
 3.  After installation or updating the plugin, run the following commands in the ILIAS root folder:
     ```bash
     composer install --no-dev
-    npm install
-    php setup/setup.php update
     ```
     **Important:** Make sure your main `composer.json` and ILIAS `.gitignore` files do **not** exclude plugins. Also, do **not** use the `--no-plugins` flag during ILIAS setup.
 

@@ -560,7 +560,7 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         }
         $a_properties["fileName"] = $file_name;
 
-        $tpl = new ilTemplate("aIPic_element.html", true, true, "Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
+        $tpl = new ilTemplate("aIPic_element.html", true, true, "public/Customizing/global/plugins/Services/COPage/PageComponent/AIPic");
         $this->tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
 
         $tpl->setVariable("ID", date_create()->format('Y-m-d_H-i-s'));
