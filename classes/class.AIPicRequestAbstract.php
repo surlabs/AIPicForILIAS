@@ -164,7 +164,7 @@ abstract class AIPicRequestAbstract implements AIPicRequestInterface
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $bodyRequest);
             curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->header);
             curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($this->ch, CURLOPT_TIMEOUT, 120);
+            curl_setopt($this->ch, CURLOPT_TIMEOUT, 350);
 
             $rawResponse = curl_exec($this->ch);
             $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);

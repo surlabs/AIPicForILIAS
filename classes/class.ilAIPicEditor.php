@@ -315,7 +315,7 @@ class ilAIPicEditorGUI
     #[NoReturn]
     public function sendPromptByJs($httpCode = 200): void
     {
-        set_time_limit(120);
+        set_time_limit(350);
 
         http_response_code($httpCode);
         header('Content-type: application/json');
