@@ -3,16 +3,25 @@ let originalButtonText = '';
 let currentGeneratedImageUrl = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-    const allTextareas = $("textarea");
-    const allSelects = $("select");
+    // Use highly specific selectors to avoid grabbing hidden textareas from core components (like datetime pickers)
+    prompt = $("textarea[name*='prompt']");
+    if (prompt.length === 0) {
+        prompt = $("textarea").eq(0);
+    }
 
-    prompt = allTextareas.eq(0);
-    styleSelect = allSelects.eq(0);
+    styleSelect = $("select[name*='styles']");
+    if (styleSelect.length === 0) {
+        const allSelects = $("select");
+        styleSelect = allSelects.eq(0);
+    }
 
     // Capture width input
-    widthInput = $("input[type='number']");
-    if(widthInput.length === 0) {
-        widthInput = $("input.form-control").eq(1);
+    widthInput = $("input[name*='widthInput']");
+    if (widthInput.length === 0) {
+        widthInput = $("input[type='number']");
+        if (widthInput.length === 0) {
+            widthInput = $("input.form-control").eq(1);
+        }
     }
 
     generateButton = $("#redirectButton button");
@@ -367,7 +376,56 @@ function isWidthInputEmpty() {
 function setDisableSendbuttons(disableGen, disableSend) {
     setTimeout(() => {
         if (generateButton && generateButton.length) generateButton.prop("disabled", disableGen);
-        if (sendButton && sendButton.length) sendButton.prop("disabled", disableSend);
+        
+        // Re-query dynamically to ensure we disable the current submit/send buttons in ILIAS 11
+        const activeSendButtons = $('.il-standard-form-cmd button, .il-standard-form-cmd input, .il-standard-form-cmd a, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary, button[id*="save"], button[id*="submit"], a.btn, a[id*="save"], a[id*="submit"], button:contains("Send"), button:contains("Save"), button:contains("update"), a:contains("Send"), a:contains("Save"), a:contains("update"), a:contains("Guardar"), a:contains("Enviar"), button:contains("Submit"), button:contains("Enviar"), button:contains("Guardar")');
+        if (activeSendButtons.length) {
+            if (disableSend) {
+                activeSendButtons.prop("disabled", true).attr("disabled", "disabled");
+                activeSendButtons.each(function() {
+                    this.style.setProperty('background', '#e0e0e0', 'important');
+                    this.style.setProperty('background-color', '#e0e0e0', 'important');
+                    this.style.setProperty('background-image', 'none', 'important');
+                    this.style.setProperty('color', '#888888', 'important');
+                    this.style.setProperty('border', '1px solid #cccccc', 'important');
+                    this.style.setProperty('border-color', '#cccccc', 'important');
+                    this.style.setProperty('opacity', '0.5', 'important');
+                    this.style.setProperty('cursor', 'not-allowed', 'important');
+                    this.style.setProperty('box-shadow', 'none', 'important');
+                    this.style.setProperty('text-shadow', 'none', 'important');
+                    this.style.setProperty('pointer-events', 'none', 'important');
+                    
+                    // CSS variables overrides
+                    this.style.setProperty('--btn-primary-bg', '#e0e0e0', 'important');
+                    this.style.setProperty('--btn-primary-color', '#888888', 'important');
+                    this.style.setProperty('--btn-primary-border', '#cccccc', 'important');
+                    this.style.setProperty('--il-btn-primary-bg', '#e0e0e0', 'important');
+                    this.style.setProperty('--il-btn-primary-color', '#888888', 'important');
+                });
+                activeSendButtons.addClass('aipic-disabled-button-force');
+            } else {
+                activeSendButtons.prop("disabled", false).removeAttr("disabled");
+                activeSendButtons.each(function() {
+                    this.style.removeProperty('background');
+                    this.style.removeProperty('background-color');
+                    this.style.removeProperty('background-image');
+                    this.style.removeProperty('color');
+                    this.style.removeProperty('border');
+                    this.style.removeProperty('border-color');
+                    this.style.removeProperty('opacity');
+                    this.style.removeProperty('cursor');
+                    this.style.removeProperty('box-shadow');
+                    this.style.removeProperty('text-shadow');
+                    this.style.removeProperty('pointer-events');
+                    this.style.removeProperty('--btn-primary-bg');
+                    this.style.removeProperty('--btn-primary-color');
+                    this.style.removeProperty('--btn-primary-border');
+                    this.style.removeProperty('--il-btn-primary-bg');
+                    this.style.removeProperty('--il-btn-primary-color');
+                });
+                activeSendButtons.removeClass('aipic-disabled-button-force');
+            }
+        }
     }, 50);
 }
 
@@ -377,6 +435,56 @@ function setDisableFormControls(disabled) {
     if(widthInput) widthInput.prop('disabled', disabled);
     $('input[type="range"]').prop('disabled', disabled);
     $('.aipic-btn-container button, .btn-group button').prop('disabled', disabled);
+    
+    // Also disable and style the submit buttons when disabling form controls
+    const activeSendButtons = $('.il-standard-form-cmd button, .il-standard-form-cmd input, .il-standard-form-cmd a, .ilSubmitButton, button[type="submit"], input[type="submit"], .btn-primary, button[id*="save"], button[id*="submit"], a.btn, a[id*="save"], a[id*="submit"], button:contains("Send"), button:contains("Save"), button:contains("update"), a:contains("Send"), a:contains("Save"), a:contains("update"), a:contains("Guardar"), a:contains("Enviar"), button:contains("Submit"), button:contains("Enviar"), button:contains("Guardar")');
+    if (activeSendButtons.length) {
+        if (disabled) {
+            activeSendButtons.prop("disabled", true).attr("disabled", "disabled");
+            activeSendButtons.each(function() {
+                this.style.setProperty('background', '#e0e0e0', 'important');
+                this.style.setProperty('background-color', '#e0e0e0', 'important');
+                this.style.setProperty('background-image', 'none', 'important');
+                this.style.setProperty('color', '#888888', 'important');
+                this.style.setProperty('border', '1px solid #cccccc', 'important');
+                this.style.setProperty('border-color', '#cccccc', 'important');
+                this.style.setProperty('opacity', '0.5', 'important');
+                this.style.setProperty('cursor', 'not-allowed', 'important');
+                this.style.setProperty('box-shadow', 'none', 'important');
+                this.style.setProperty('text-shadow', 'none', 'important');
+                this.style.setProperty('pointer-events', 'none', 'important');
+                
+                // CSS variables overrides
+                this.style.setProperty('--btn-primary-bg', '#e0e0e0', 'important');
+                this.style.setProperty('--btn-primary-color', '#888888', 'important');
+                this.style.setProperty('--btn-primary-border', '#cccccc', 'important');
+                this.style.setProperty('--il-btn-primary-bg', '#e0e0e0', 'important');
+                this.style.setProperty('--il-btn-primary-color', '#888888', 'important');
+            });
+            activeSendButtons.addClass('aipic-disabled-button-force');
+        } else {
+            activeSendButtons.prop("disabled", false).removeAttr("disabled");
+            activeSendButtons.each(function() {
+                this.style.removeProperty('background');
+                this.style.removeProperty('background-color');
+                this.style.removeProperty('background-image');
+                this.style.removeProperty('color');
+                this.style.removeProperty('border');
+                this.style.removeProperty('border-color');
+                this.style.removeProperty('opacity');
+                this.style.removeProperty('cursor');
+                this.style.removeProperty('box-shadow');
+                this.style.removeProperty('text-shadow');
+                this.style.removeProperty('pointer-events');
+                this.style.removeProperty('--btn-primary-bg');
+                this.style.removeProperty('--btn-primary-color');
+                this.style.removeProperty('--btn-primary-border');
+                this.style.removeProperty('--il-btn-primary-bg');
+                this.style.removeProperty('--il-btn-primary-color');
+            });
+            activeSendButtons.removeClass('aipic-disabled-button-force');
+        }
+    }
 }
 
 function checkChanges() {
@@ -392,8 +500,13 @@ function checkChanges() {
     const promptEmpty = prompt ? prompt.val().length === 0 : true;
 
     setDisableSendbuttons(promptEmpty || isSpinnerVisible || isWidthInputEmpty(), imgEmptyOrDefault);
+    // If spinner is visible, both generate and send buttons must be disabled.
+    if (isSpinnerVisible) {
+        setDisableSendbuttons(true, true);
+    } else {
+        setDisableSendbuttons(promptEmpty || isWidthInputEmpty(), imgEmptyOrDefault);
+    }
 }
-
 function displayMessage(htmlMessage) {
     let $messageArea = $("#global-message-area");
     if (!$messageArea.length) {
