@@ -1,19 +1,27 @@
 $(document).ready(function () {
     function getMainColor() {
-        //const btn = $('#il_center_col').find('button.btn.btn-default').first().get(0);
         const btn = $("body .btn-default")[0];
         return btn
             ? window.getComputedStyle(btn).backgroundColor
             : 'rgb(0,0,0)';
     }
 
+    // Dynamic and safe search for the width field
+    function getWidthInput() {
+        let input = $("input[type='number']");
+        if (input.length === 0) {
+            input = $("input.form-control").eq(1); // Fallback in case ILIAS renders it as text
+        }
+        return input;
+    }
+
     function createSlider(value) {
-        const inputWidth = $('input[name="AIPicForm/input_6/input_11"]');
+        const inputWidth = getWidthInput();
         const slider = $('<input>', {
             type: 'range',
             min: 1,
             max: 100,
-            value: value,
+            value: value || 50,
             id: 'aipic_slider',
             style: 'width: 100%; margin-top: 15px;'
         }).addClass('aipic_slider');
@@ -88,9 +96,15 @@ $(document).ready(function () {
         $('<style>').text(css).appendTo('head');
     }
 
-    const input = document.querySelector('input[name="AIPicForm/input_6/input_11"]');
-    const mainColor = getMainColor();
-    const slider = createSlider(input.value);
-    synchronizeInputs(input, slider);
-    applySliderStyles(slider, mainColor);
+    // Safe initialization
+    const inputObj = getWidthInput();
+    if (inputObj.length > 0) {
+        const input = inputObj.get(0);
+        const mainColor = getMainColor();
+        const slider = createSlider(input.value);
+        synchronizeInputs(input, slider);
+        applySliderStyles(slider, mainColor);
+    } else {
+        console.warn("AIPic Debug: Could not find the Width field to generate the slider.");
+    }
 });

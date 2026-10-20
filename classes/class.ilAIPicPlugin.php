@@ -79,11 +79,26 @@ class ilAIPicPlugin extends ilPageComponentPlugin
 
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
-        if (!$move_operation) {
-            $this->uploader = new UploadServiceAIPicGUI();
-            if (!empty($a_properties["imageId"])) {
-                $this->uploader->removeFromOutside($a_properties["imageId"]);
+        if ($move_operation || empty($a_properties["imageId"])) {
+            return;
+        }
+
+        $imageId = $a_properties["imageId"];
+
+        if (ctype_digit(trim($imageId))) {
+            // New format: numeric mob ID → delete the ilObjMediaObject
+            try {
+                $mob = new ilObjMediaObject((int)$imageId);
+                if ($mob->getId()) {
+                    $mob->delete();
+                }
+            } catch (Throwable $e) {
+                // Silent: mob may already have been removed
             }
+        } else {
+            // Legacy format: IRSS UUID → remove from resource storage
+            $this->uploader = new UploadServiceAIPicGUI();
+            $this->uploader->removeFromOutside($imageId);
         }
     }
 }

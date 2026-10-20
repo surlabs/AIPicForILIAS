@@ -109,3 +109,5 @@ component_aligment#:#Ausrichtung
 component_left#:#Links
 component_center#:#Zentriert
 component_right#:#Rechts
+err_api_connection#:#Das Bild konnte nicht generiert werden. Der Text entspricht möglicherweise nicht den Nutzungsrichtlinien oder es liegt ein vorübergehendes Verbindungsproblem vor. Bitte ändern Sie Ihre Eingabe und versuchen Sie es erneut. Kontaktieren Sie den Administrator für weitere Details.
+err_api_safety#:#Die künstliche Intelligenz hat die Generierung dieses Bildes aufgrund von Sicherheitsrichtlinien abgelehnt. Kontaktieren Sie den Administrator für weitere Details.

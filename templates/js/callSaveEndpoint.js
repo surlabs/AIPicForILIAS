@@ -5,6 +5,16 @@ function callSaveEndpoint(url) {
     const images = document.getElementsByTagName('img');
     for (let i = 0; i < images.length; i++) {
         if (images[i].alt === 'Generated_image') {
+            if (images[i].src.startsWith('blob:') || images[i].src.startsWith('data:')) {
+                const a = document.createElement('a');
+                a.href = images[i].src;
+                a.download = 'AIPic.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
+
             currentUrl.searchParams.delete("urlDownload");
             currentUrl.searchParams.set("urlDownload", encodeURI(images[i].src));
             currentUrl.searchParams.delete("methodDesired");

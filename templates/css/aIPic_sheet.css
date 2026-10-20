@@ -1,8 +1,30 @@
 .il-standard-form-cmd button[disabled],
-.il-standard-form-cmd input[type='submit'][disabled] {
-    pointer-events: none;
-    opacity: 0.5;
-    cursor: not-allowed;
+.il-standard-form-cmd input[type='submit'][disabled],
+.aipic-disabled-button-force,
+.aipic-disabled-button-force:disabled,
+button.aipic-disabled-button-force,
+a.aipic-disabled-button-force,
+.il-standard-form-cmd a.aipic-disabled-button-force,
+.il-standard-form-cmd a.aipic-disabled-button-force:hover,
+.aipic-disabled-button-force:hover {
+    pointer-events: none !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background: #e0e0e0 !important;
+    background-color: #e0e0e0 !important;
+    background-image: none !important;
+    color: #888888 !important;
+    border: 1px solid #cccccc !important;
+    border-color: #cccccc !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    
+    /* ILIAS 10 primary buttons CSS variables */
+    --btn-primary-bg: #e0e0e0 !important;
+    --btn-primary-color: #888888 !important;
+    --btn-primary-border: #cccccc !important;
+    --il-btn-primary-bg: #e0e0e0 !important;
+    --il-btn-primary-color: #888888 !important;
 }
 
 .center {
