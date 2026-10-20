@@ -229,6 +229,311 @@ class  ilAIPicPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
+<<<<<<< Updated upstream
+=======
+     * Override createElement to create MediaObject instead of plugin object
+     * @throws Exception|Throwable
+     */
+    public function createElement(array $a_properties): bool
+    {
+        global $DIC;
+
+        $imageId = $a_properties["imageId"] ?? '';
+        if (empty($imageId)) {
+            throw new Exception("Image ID is empty. Please generate an image before submitting.");
+        }
+
+        // 1. Create a new native Media Object
+        $mob = new ilObjMediaObject();
+        $title = "AIPic_Image";
+        if (!empty($a_properties["title"]) && trim($a_properties["title"]) !== "") {
+            $title = trim($a_properties["title"]);
+        }
+        $mob->setTitle($title);
+        if (!empty($a_properties["prompt"])) {
+            $mob->setDescription(trim($a_properties["prompt"]));
+        }
+        $mob->create();
+        $mob->createDirectory(); // Create physical directory
+
+        // 2. Locate the physical source file
+        $src_file = null;
+        try {
+            // Try native IRSS first
+            $irss = $DIC->resourceStorage();
+            $rid = new \ILIAS\ResourceStorage\Identification\ResourceIdentification($imageId);
+            $src_file = $irss->consume()->src($rid)->getSrc();
+        } catch (Throwable $e) {
+            // Fallback: Check if the ID belongs to another Media Object
+            if (ilObject::_lookupType((int)$imageId) === 'mob') {
+                $tempMob = new ilObjMediaObject((int)$imageId);
+                $mediaItems = $tempMob->getMediaItems();
+                if (!empty($mediaItems)) {
+                    $src_file = ilObjMediaObject::_getDirectory($tempMob->getId()) . "/" . $mediaItems[0]->getLocation();
+                }
+            }
+            // Fallback: Check if the ID belongs to a classic ilObjFile
+            elseif (ilObject::_lookupType((int)$imageId) === 'file') {
+                $tempFile = new ilObjFile((int)$imageId, false);
+                $src_file = $tempFile->getFile();
+            }
+
+            if (!$src_file || !file_exists($src_file)) {
+                $mob->delete();
+                throw new Exception("File for ID [$imageId] was not found on disk. Please regenerate the image.");
+            }
+        }
+
+        // 3. Copy file to the new Media Object directory
+        $rawFilename = $a_properties["legacyFileName"] ?? ("aipic_" . time() . ".png");
+        $filename = basename($rawFilename);
+        $dest_file = ilObjMediaObject::_getDirectory($mob->getId()) . "/" . $filename;
+
+        if ($src_file && filter_var($src_file, FILTER_VALIDATE_URL)) {
+            try {
+                $irss = $DIC->resourceStorage();
+                $rid = new \ILIAS\ResourceStorage\Identification\ResourceIdentification($imageId);
+                $stream = $irss->consume()->stream($rid)->getStream();
+                file_put_contents($dest_file, $stream->getContents());
+            } catch (Throwable $e) {
+                // Silent fallback
+            }
+        } elseif ($src_file && file_exists($src_file)) {
+            copy($src_file, $dest_file);
+        }
+
+        // Register and copy the file into the IRSS container natively
+        $mediaItem = $mob->addMediaItemFromLocalFile("Standard", $dest_file, $filename);
+        $mediaItem->setNr(1);
+
+        $this->applyLayoutProperties($mediaItem, $a_properties);
+        $mob->update();
+
+        // 4. Create alias and insert it into the page DOM
+        $pc_media = new ilPCMediaObject($this->getPCGUI()->getPage());
+        $pc_media->setMediaObject($mob);
+
+        $page = $this->getPCGUI()->getPage();
+        $hier_id = $this->getPCGUI()->getHierId();
+        $pc_id = $page->getPCIdForHierId($hier_id);
+
+        $pc_media->createAlias($page, $hier_id, $pc_id);
+
+        // Apply CSS styles, alignment and alternate text
+        $this->applyAliasProperties($pc_media, $a_properties);
+
+        // Save changes to the page
+        $is_updated = $this->getPCGUI()->getPage()->update();
+
+        return $is_updated === true;
+    }
+
+    /**
+     * Update MediaObject and its page alias properties
+     */
+    private function updateMediaObjectProperties(array $a_properties): void
+    {
+        // Legacy UUID imageIds cannot be updated via ilObjMediaObject — skip gracefully
+        if ($this->isLegacyImageId($a_properties["imageId"] ?? '')) {
+            return;
+        }
+
+        try {
+            $mob = new ilObjMediaObject((int)$a_properties["imageId"]);
+            if ($mob->getId()) {
+                $title = "AIPic_" . $mob->getId();
+                if (!empty($a_properties["title"]) && trim($a_properties["title"]) !== "") {
+                    $title = trim($a_properties["title"]);
+                }
+                $mob->setTitle($title);
+
+                if (!empty($a_properties["prompt"])) {
+                    $mob->setDescription(trim($a_properties["prompt"]));
+                }
+
+                // Save standard changes
+                $mob->update();
+
+                // Load XML element from the page DOM to update layout and CSS
+                $page = $this->getPCGUI()->getPage();
+                $hier_id = $this->getPCGUI()->getHierId();
+
+                $pc_media = new ilPCMediaObject($page);
+                $pc_media->readMediaObjectNode($page, $hier_id);
+
+                $this->applyAliasProperties($pc_media, $a_properties);
+                $page->update();
+            }
+        } catch (Throwable $e) {
+            global $DIC;
+            $errorMsg = "Error in updateMediaObject (Line " . $e->getLine() . "): " . $e->getMessage();
+            $DIC->ui()->mainTemplate()->setOnScreenMessage('failure', $errorMsg, true);
+            $DIC->logger()->root()->error($errorMsg);
+        }
+    }
+
+    /**
+     * Apply layout properties to MediaItem
+     */
+    private function applyLayoutProperties(ilMediaItem $mediaItem, array $properties): void
+    {
+        if (isset($properties["widthInput"]) && $properties["widthInput"] > 0) {
+            // With no multiplier, image is too small
+            $withMultiplier = $properties["widthInput"] * 12;
+            $mediaItem->setWidth((string)$withMultiplier);
+        }
+    }
+
+    /**
+     * Apply native layout properties to the DOM node
+     */
+    private function applyAliasProperties(ilPCMediaObject $pc_media, array $properties): void
+    {
+        // Style class
+        if (!empty($properties["styleClass"])) {
+            $pc_media->setClass($properties["styleClass"]);
+        }
+
+        $dom_node = $pc_media->getDomNode();
+        $dom_doc = $pc_media->getDomDoc();
+
+        if (!$dom_node || !$dom_doc) {
+            return;
+        }
+
+        $xpath = new DOMXPath($dom_doc);
+
+        // Alignment
+        $alignment = $properties["aligments"] ?? "Center";
+        $horizontal_align = match ($alignment) {
+            "Center" => "Center",
+            "Left" => "Left",
+            "Right" => "Right",
+            "LeftFloat" => "Left, Floating",
+            "RightFloat" => "Right, Floating",
+            default => "Center",
+        };
+
+        $layout_nodes = $xpath->query(".//Layout", $dom_node);
+        if ($layout_nodes->length > 0) {
+            $layout_nodes->item(0)->setAttribute("HorizontalAlign", $horizontal_align);
+        }
+
+        // Set standard caption from prompt
+        if (!empty($properties["prompt"]) && method_exists($pc_media, 'setStandardCaption')) {
+            $pc_media->setStandardCaption($properties["prompt"]);
+        }
+
+        // Alt text representation
+        if (!empty($properties["textRepresentation"]) && method_exists($pc_media, 'setStandardTextRepresentation')) {
+            $pc_media->setStandardTextRepresentation($properties["textRepresentation"]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers: legacy vs. new imageId format
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true if the given imageId is a legacy IRSS UUID (non-numeric).
+     * New-format imageIds are the integer ID of an ilObjMediaObject.
+     */
+    private function isLegacyImageId(string $imageId): bool
+    {
+        return !ctype_digit(trim($imageId));
+    }
+
+    /**
+     * Resolve the web-accessible image URL for both legacy (IRSS UUID) and
+     * new (ilObjMediaObject integer ID) imageId formats.
+     *
+     * Returns null if the image resource cannot be found.
+     */
+    private function resolveImageSrc(string $imageId): ?string
+    {
+        if ($imageId === '') {
+            return null;
+        }
+
+        if ($this->isLegacyImageId($imageId)) {
+            // Legacy format: IRSS UUID — resolve via ResourceStorage
+            try {
+                global $DIC;
+                $irss = $DIC->resourceStorage();
+                $rid  = new \ILIAS\ResourceStorage\Identification\ResourceIdentification($imageId);
+                return $irss->consume()->src($rid)->getSrc();
+            } catch (Throwable $e) {
+                return null;
+            }
+        }
+
+        // New format: integer mob ID — resolve via ilObjMediaObject
+        try {
+            $mob = new ilObjMediaObject((int)$imageId);
+            if (!$mob->getId()) {
+                return null;
+            }
+            $mediaItems = $mob->getMediaItems();
+            if (empty($mediaItems)) {
+                return null;
+            }
+            $mediaItem = $mediaItems[0];
+            return ilObjMediaObject::_getURL($mob->getId()) . '/' . $mediaItem->getLocation();
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Delete a stored image by its imageId, handling both legacy (IRSS UUID)
+     * and new (ilObjMediaObject integer ID) formats.
+     */
+    private function removeImageById(string $imageId): void
+    {
+        if ($imageId === '') {
+            return;
+        }
+
+        if ($this->isLegacyImageId($imageId)) {
+            // Legacy: remove from IRSS
+            $this->uploader->removeFromOutside($imageId);
+        } else {
+            // New: delete the ilObjMediaObject
+            try {
+                $mob = new ilObjMediaObject((int)$imageId);
+                if ($mob->getId()) {
+                    $mob->delete();
+                }
+            } catch (Throwable $e) {
+                // Silent: mob may already be gone
+            }
+        }
+    }
+
+    /**
+     * Render the editor form and load assets
+     */
+    private function renderEditorWithForm(Standard $form, ?string $file_name = null): void
+    {
+        global $tpl;
+
+        $this->editorGUI->manageDownloadImage();
+        $image = $this->editorGUI->generateImage($file_name);
+        $res = $this->editorGUI->renderForm($form) . $image;
+
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/downloadImage.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/callSaveEndpoint.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/widthInput.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/alignButtons.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/resendForm.js");
+        $tpl->addJavaScript("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/js/adjustImage.js");
+        $tpl->addCss("./Customizing/global/plugins/Services/COPage/PageComponent/AIPic/templates/css/aIPic_sheet.css");
+
+        $this->tpl->setContent($res);
+    }
+
+    /**
+>>>>>>> Stashed changes
      * @throws ilTemplateException
      * @throws Exception
      */
