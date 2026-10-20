@@ -323,10 +323,12 @@ class ilAIPicPluginGUI extends ilPageComponentPluginGUI
         $pc_media = new ilPCMediaObject($this->getPCGUI()->getPage());
         $pc_media->setMediaObject($mob);
 
-        // Detect insertion position
-        $position = method_exists($this->getPCGUI(), 'getPosition') ? $this->getPCGUI()->getPosition() : "after";
+        // Detect insertion position: createAlias() expects the PC id of the target node, not a position keyword
+        $page = $this->getPCGUI()->getPage();
+        $hier_id = $this->getPCGUI()->getHierId();
+        $pc_id = $page->getPCIdForHierId($hier_id);
 
-        $pc_media->createAlias($this->getPCGUI()->getPage(), $this->getPCGUI()->getHierId(), $position);
+        $pc_media->createAlias($page, $hier_id, $pc_id);
 
         // Apply CSS styles, alignment and alternate text
         $this->applyAliasProperties($pc_media, $a_properties);
